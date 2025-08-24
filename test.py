@@ -2,6 +2,7 @@
 
 import funcgen.fy3224s as fg;
 import psu.owon_spm3051 as psu;
+import oscilloscope.gw_instek_gds_806s as osc;
 import time;
 
 ###############################################################################
@@ -63,3 +64,12 @@ psu.set_current_limit(3)
 print("Output enabled:", psu.get_output())
 psu.set_output(True)
 psu.close()
+
+###############################################################################
+
+oscilloscope=osc.GWInstek('COM11')
+oscilloscope.open()
+
+print("Identity:",oscilloscope.read_identity())
+
+oscilloscope.close()
