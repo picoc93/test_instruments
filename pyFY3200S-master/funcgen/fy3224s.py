@@ -84,53 +84,69 @@ class Generator:
 
     def set_waveform(self,waveform):
         self.writeCmd(f'bw{waveform:1}')
-        return self.readResult()
+        return
 
     def set_frequency(self,freqInHz):
-        freq=freqInHz*100
-        self.writeCmd(f'bf{freq:>9}')
-        return self.readResult()
+        freq=int(freqInHz*100)
+        self.writeCmd(f'bf{freq:09d}')
+        return
 
     def set_amplitude(self,ampl):
-        self.writeCmd(f'ba{ampl:4.1f}')
-        return self.readResult()
+        self.writeCmd(f'ba{ampl:2.1f}')
+        return
 
     def set_DC_offset(self,offset):
-        self.writeCmd(f'bo{offset:5.1f}')
-        return self.readResult()
+        self.writeCmd(f'bo{offset:3.1f}')
+        return
 
     def set_duty_cycle(self,duty_cycle):
-        self.writeCmd(f'bd{duty_cycle:>2}')
-        return self.readResult()
+        duty=duty_cycle*10
+        self.writeCmd(f'bd{duty:3}')
+        return
 
     def set_pulse_width(self,pulse_width,time_unit):
-        self.writeCmd(f'bu{pulse_width:4}{time_unit}')
-        return self.readResult()
+        pw=int(pulse_width)*1000
+        self.writeCmd(f'bu{pw:010d}{time_unit}')
+        return
 
     def set_sweep_time(self,sweep_time):
         self.writeCmd(f'bt{sweep_time:>2}')
-        return self.readResult()
+        return
 
-    def set_sweep_start_frequency(self,freq):
-        self.writeCmd(f'bb{freq:>9}')
-        return self.readResult()
+    def set_sweep_start_frequency(self,freqInHz):
+        freq=int(freqInHz*100)
+        self.writeCmd(f'bb{freq:09d}')
+        return
 
-    def set_sweep_stop_frequency(self,freq):
-        self.writeCmd(f'be{freq:>9}')
-        return self.readResult()
+    def set_sweep_stop_frequency(self,freqInHz):
+        freq=int(freqInHz*100)
+        self.writeCmd(f'be{freq:09d}')
+        return
 
         #Set the sweep scan mode
-    def set_scan_mode(self,mode):
+    def set_scan_mode(self,sweep_mode):
+        if(sweep_mode == 'lin-sweep'):
+            mode=0
+        elif(sweep_mode == 'log-sweep'):
+            mode=1
+        else:
+            mode=0
         self.writeCmd(f'bm{mode:1}')
-        return self.readResult()
+        return
 
-    def start_sweep(self,ctrl):
+    def set_sweep_control(self,sweep_control):
+        if(sweep_control == 'stop'):
+            ctrl=0
+        elif(sweep_control == 'start'):
+            ctrl=1
+        else:
+            ctrl=0
         self.writeCmd(f'br{ctrl:1}')
-        return self.readResult()
+        return
 
     def clear_internal_counter(self):
         self.writeCmd(f'bc')
-        return self.readResult()     
+        return
 
     # store parameters (frequency, duty cycle, waveform) to a storage Position (0-9)
     def store_current_parameters(self,pos):
@@ -167,3 +183,28 @@ class Generator:
         self.writeCmd('ct')
         return self.readResult()
 
+    def set_deputy_waveform(self,waveform):
+        self.writeCmd(f'dw{waveform:1}')
+        return
+
+    def set_deputy_frequency(self,freqInHz):
+        freq=int(freqInHz*100)
+        self.writeCmd(f'df{freq:09d}')
+        return
+
+    def set_deputy_amplitude(self,ampl):
+        self.writeCmd(f'da{ampl:2.1f}')
+        return
+
+    def set_deputy_DC_offset(self,offset):
+        self.writeCmd(f'do{offset:3.1f}')
+        return
+
+    def set_deputy_wave_phase(self,phase):
+        self.writeCmd(f'dp{phase:3}')
+        return
+
+    def set_deputy_duty_cycle(self,duty_cycle):
+        duty=duty_cycle*10
+        self.writeCmd(f'dd{duty:3}')
+        return
