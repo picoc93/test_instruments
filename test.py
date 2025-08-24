@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import funcgen.fy3224s as fg;
+import psu.owon_spm3051 as psu;
 import time;
 
 ###############################################################################
@@ -41,3 +42,24 @@ funcGen.set_pulse_width(1234,'ns') #not working
 #funcGen.get_external_count()
 
 funcGen.close()
+
+###############################################################################
+
+psu=psu.OwonPSU('COM13')
+psu.open()
+print("Identity:", psu.read_identity())
+print("Measured Voltage:", psu.measure_voltage())
+print("Measured Current:", psu.measure_current())
+print("Get Voltage:", psu.get_voltage())
+print("Get Current:", psu.get_current())
+print("Get Voltage Limit:", psu.get_voltage_limit())
+print("Get Current Limit:", psu.get_current_limit())
+
+psu.set_voltage(3)
+psu.set_current(2)
+psu.set_voltage_limit(30)
+psu.set_current_limit(3)
+
+print("Output enabled:", psu.get_output())
+psu.set_output(True)
+psu.close()
