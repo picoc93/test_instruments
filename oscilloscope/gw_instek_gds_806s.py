@@ -123,8 +123,8 @@ class GWInstek:
     return self._cmd(f":TRIGger:MODe  {mode}")
   
   #Select and query the trigger type.
-  def set_trigger_type(self,type):
-    return self._cmd(f":TRIGger:TYPe  {type}")
+  def set_trigger_type(self,trigger_type):
+    return self._cmd(f":TRIGger:TYPe  {trigger_type}")
 
   #Select and query the trigger source.
   def set_trigger_source(self,source):
@@ -153,10 +153,16 @@ class GWInstek:
   def set_trigger_video_polarity(self,polarity):
     return self._cmd(f":TRIGger:VIDeo:POLarity  {polarity}")
 
+  #Enable or disable the waveform invert function. 
+  #<X>→Specify the channel number (1|2) 
+  #0→Disable invert function 1→Enable invert function 
+  def enable_channel_invert(self,channel,invert):
+    return self._cmd(f":CHANnel{channel}::INVert  {invert}")
+
   #Enable or disable the bandwidth limit function.
   #0→Disable bandwidth limit 1→Enable bandwidth limit
   #<X>→Specify the channel number (1|2)
-  def enable_bw_limit(self,channel, bw_limit):
+  def enable_channel_bw_limit(self,channel, bw_limit):
     return self._cmd(f":CHANnel{channel}:BWLimi  {bw_limit}")
 
   #Select the different coupling states for the oscilloscope.
