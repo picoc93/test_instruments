@@ -1,6 +1,130 @@
 #!/usr/bin/env python3
 
 import serial
+from enum import Enum
+
+class Voltage_Scale(float, Enum):
+  mV_1=0.002
+  mV_2=0.005
+  mV_10=0.01
+  mV_20=0.02
+  mV_50=0.05
+  mV_100=0.1
+  mV_200=0.2 
+  mV_500=0.5
+  V_1=1
+  V_2=2
+  V_5=5
+
+#Sec/div	NR3
+class Time_Scale(float, Enum):
+  ns_1=1e-9
+  ns_2_5=2.5e-9
+  ns_5=5e-9
+  ns_10=1e-8
+  ns_25=2.5e-8
+  ns_50=5e-8
+  ns_100=1e-7
+  ns_250=2.5e-7
+  ns_500=5e-7
+  us_1=1e-6
+  us_2_5=2.5e-6
+  us_5=5e-6
+  us_10=1e-5
+  us_25=2.5e-5
+  us_50=5e-5
+  us_100=1e-4
+  us_250=2.5e-4
+  us_500=5e-4
+  ms_1=1e-3
+  ms_2_5=2.5e-3
+  ms_5=5e-3
+  ms_10=1e-2
+  ms_25=2.5e-2
+  ms_50=5e-2
+  ms_100=1e-1
+  ms_250=2.5e-1
+  ms_500=5e-1
+  s_1=1
+  s_2_5=2.5
+  s_5=5
+  s_10=10
+
+class Acquire_Mode(IntEnum):
+  sample_mode=0 
+  peak_detection_mode=1
+  average_mode=2
+
+class Acquire_Average(IntEnum):
+  ave_2=1
+  ave_4=2
+  ave_8=3
+  ave_16=4
+  ave_32=5
+  ave_64=6
+  ave_128=7
+  ave_256=8
+
+class Acquire_Length(IntEnum):
+  len_500=0
+  len_1250=1
+  len_2500=2
+  len_5000=3
+  len_12500=4
+  len_25000=5
+  len_50000=6
+  len_125000=7
+
+class Channel(IntEnum):
+  ch1=1
+  ch2=2
+
+class Channel_Coupling(IntEnum):
+  AC=0 
+  DC=1 
+  Ground=2
+
+class Channel_Probe(IntEnum):
+  X_1=0 
+  X_10=1 
+  X_100=2
+
+class Channel_Math(IntEnum):
+  add_operator=0
+  subtractor_operator=1
+  FFT=2
+  turn_off=3
+
+class Trigger_Mode(IntEnum):
+  auto_level=0
+  auto=1
+  normal=2
+  single=3
+
+class Trigger_Type(IntEnum):
+  edge=0 
+  video=1 
+  pulse=2 
+  delay=3
+
+class Trigger_Source(IntEnum):
+  ch1=0 
+  ch2=1 
+  external=2 
+  AC_line_voltage=3
+
+class Trigger_Coupling(IntEnum):
+  AC=0 
+  DC=1 
+
+class Trigger_Slope(IntEnum):
+  rising_slope=0
+  falling_slope=1 
+
+class Trigger_Video_Polarity(IntEnum):
+  positive=0
+  negative=1 
+
 
 class GWInstek:
 
@@ -79,7 +203,7 @@ class GWInstek:
   #1→Select the peak detection mode
   #2→Select the average mode
   def acquire_mode(self,number):
-    return self._cmd(f":ACQuire:MODe{number}")
+    return self._cmd(f":ACQuire:MODe {number}")
 
   #Select the average number of waveform acquisition. The range for averaging is from 2 to 256 in powers of 2.
   #1→Average number is 2 2→Average number is 4
@@ -87,16 +211,15 @@ class GWInstek:
   #5→Average number is 32 6→Average number is 64
   #7→Average number is 128 8→Average number is 256
   def acquire_average(self,number):
-    return self._cmd(f":ACQuire:AVERage{number}")
+    return self._cmd(f":ACQuire:AVERage {number}")
 
   #Select the number of record length. This oscilloscope provides record length of 500, 1250, 2500, 5000, 12500, 25000, 50000, and 125000.
   #0→Record length is 500 1→Record length is 1250 2→Record length is 2500
   #3→Record length is 5000 4→Record length is 12500 5→Record length is 25000
   #6→Record length is 50000 7→Record length is 125000
   def acquire_length(self,number):
-    return self._cmd(f":ACQuire:LENGth{number}")
+    return self._cmd(f":ACQuire:LENGth {number}")
 
-  #(The memory capacity can be selected as 500, 1250, 2500, 5000, 12500, 25000, 50000, or 125000 points
   #<X>→Specify the channel number (1|2)
   def acquire_memory(self,channel):
     return self._cmd(f":ACQuire<{channel}>:MEMory?")
@@ -107,10 +230,74 @@ class GWInstek:
     return self._cmd(f":ACQuire<{channel}>:POINt")
 
   #Sets the horizontal position (delay timebase) parameter.
+    #Sec/div	NR3
+  #1ns	1.00E-09
+  #2.5ns	2.50E-09
+  #5ns	5.00E-09
+  #10ns	1.00E-08
+  #25ns	2.50E-08
+  #50ns	5.00E-08
+  #100ns	1.00E-07
+  #250ns	2.50E-07
+  #500ns	5.00E-07
+  #1μs	1.00E-06
+  #2.5μs	2.50E-06
+  #5μs	5.00E-06
+  #10μs	1.00E-05
+  #25μs	2.50E-05
+  #50μs	5.00E-05
+  #100μs	1.00E-04
+  #250μs	2.50E-04
+  #500μs	5.00E-04
+  #1ms	1.00E-03
+  #2.5ms	2.50E-03
+  #5ms	5.00E-03
+  #10ms	1.00E-02
+  #25ms	2.50E-02
+  #50ms	5.00E-02
+  #100ms	1.00E-01
+  #250ms	2.50E-01
+  #500ms	5.00E-01
+  #1s	1
+  #2.5s	2.5
+  #5s	5
+  #10s	10
   def set_timebase_delay(self,delay):
     return self._cmd(f":TIMebase:DELay {delay}")
   
   #Sets the horizontal timebase scale per division (SEC/DIV).
+  #Sec/div	NR3
+  #1ns	1.00E-09
+  #2.5ns	2.50E-09
+  #5ns	5.00E-09
+  #10ns	1.00E-08
+  #25ns	2.50E-08
+  #50ns	5.00E-08
+  #100ns	1.00E-07
+  #250ns	2.50E-07
+  #500ns	5.00E-07
+  #1μs	1.00E-06
+  #2.5μs	2.50E-06
+  #5μs	5.00E-06
+  #10μs	1.00E-05
+  #25μs	2.50E-05
+  #50μs	5.00E-05
+  #100μs	1.00E-04
+  #250μs	2.50E-04
+  #500μs	5.00E-04
+  #1ms	1.00E-03
+  #2.5ms	2.50E-03
+  #5ms	5.00E-03
+  #10ms	1.00E-02
+  #25ms	2.50E-02
+  #50ms	5.00E-02
+  #100ms	1.00E-01
+  #250ms	2.50E-01
+  #500ms	5.00E-01
+  #1s	1
+  #2.5s	2.5
+  #5s	5
+  #10s	10
   def set_timebase_scale(self,scale):
     return self._cmd(f":TIMebase:SCALe {scale}")
 
@@ -120,7 +307,7 @@ class GWInstek:
   #2→Normal
   #3→Single
   def set_trigger_mode(self,mode):
-    return self._cmd(f":TRIGger:MODe  {mode}")
+    return self._cmd(f":TRIGger:MODe {mode}")
   
   #Select and query the trigger type.
   #0→Edge 
@@ -128,7 +315,7 @@ class GWInstek:
   #2→Pulse 
   #3→Delay
   def set_trigger_type(self,trigger_type):
-    return self._cmd(f":TRIGger:TYPe  {trigger_type}")
+    return self._cmd(f":TRIGger:TYPe {trigger_type}")
 
   #Select and query the trigger source.
   #0→Channel 1 
@@ -136,55 +323,62 @@ class GWInstek:
   #2→External trigger 
   #3→AC line voltage
   def set_trigger_source(self,source):
-    return self._cmd(f":TRIGger:SOURce  {source}")
+    return self._cmd(f":TRIGger:SOURce {source}")
  
   #Select and query the type of trigger coupling.
-  #0→AC 1→DC
+  #0→AC 
+  #1→DC
   def set_trigger_couple(self,couple):
-    return self._cmd(f":TRIGger:COUPle  {couple}")
+    return self._cmd(f":TRIGger:COUPle {couple}")
   
   #Select and query the trigger level.
   def set_trigger_level(self,level):
-    return self._cmd(f":TRIGger:LEVel  {level}")
+    return self._cmd(f":TRIGger:LEVel {level}")
 
   #Switch and query the rising or falling trigger slope.
-  #0→Rising slope 1→Falling slope 
+  #0→Rising slope 
+  #1→Falling slope 
   def set_trigger_slope(self,slope):
-    return self._cmd(f":TRIGger:SLOP  {slope}")
+    return self._cmd(f":TRIGger:SLOP {slope}")
   
   #Select and query the specified line for video signal.
   def set_trigger_video_line(self,line):
-    return self._cmd(f":TRIGger:VIDeo:LINe  {line}")
+    return self._cmd(f":TRIGger:VIDeo:LINe {line}")
 
   #Select and query the input video polarity.
   #0→Positive-going sync pulses
   #1→Negative-going sync pulses
   def set_trigger_video_polarity(self,polarity):
-    return self._cmd(f":TRIGger:VIDeo:POLarity  {polarity}")
+    return self._cmd(f":TRIGger:VIDeo:POLarity {polarity}")
 
   #Enable or disable the waveform invert function. 
   #<X>→Specify the channel number (1|2) 
-  #0→Disable invert function 1→Enable invert function 
+  #0→Disable invert function 
+  #1→Enable invert function 
   def enable_channel_invert(self,channel,invert):
-    return self._cmd(f":CHANnel{channel}::INVert  {invert}")
+    return self._cmd(f":CHANnel{channel}::INVert {invert}")
 
   #Enable or disable the bandwidth limit function.
-  #0→Disable bandwidth limit 1→Enable bandwidth limit
   #<X>→Specify the channel number (1|2)
+  #0→Disable bandwidth limit 
+  # 1→Enable bandwidth limit
   def enable_channel_bw_limit(self,channel, bw_limit):
-    return self._cmd(f":CHANnel{channel}:BWLimi  {bw_limit}")
+    return self._cmd(f":CHANnel{channel}:BWLimi {bw_limit}")
 
   #Select the different coupling states for the oscilloscope.
   #<X>→Specify the channel number (1|2)
-  #0→Place scope in AC coupling state 1→Place scope in DC coupling state
+  #0→Place scope in AC coupling state 
+  #1→Place scope in DC coupling state
   #2→Place scope in grounding state
   def channel_coupling(self,channel,coupling):
-    return self._cmd(f":CHANnel{channel}:BWLimi  {coupling}")
+    return self._cmd(f":CHANnel{channel}:BWLimi {coupling}")
 
   #Set the math expression.
   #<X>→Specify the channel number (1|2)
-  #0→Select the add operator 1→Select the subtract operator
-  #2→Select the FFT operation 3→Turn off math function
+  #0→Select the add operator 
+  #1→Select the subtract operator
+  #2→Select the FFT operation 
+  #3→Turn off math function
   def channel_math(self,channel,math):
     return self._cmd(f":CHANnel{channel}:MATH {math}")
 
@@ -207,7 +401,9 @@ class GWInstek:
 
   #Select the different probe attenuation factor.
   #<X>→Specify the channel number (1|2)
-  #0→1X 1→10X 2→100X
+  #0→1X 
+  #1→10X 
+  #2→100X
   def channel_probe(self,channel,probe):
     return self._cmd(f":CHANnel{channel}:PROBe {probe}")
 
