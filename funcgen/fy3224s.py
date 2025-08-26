@@ -32,49 +32,50 @@ class Waveform(IntEnum):
 
 ###############################################################################
 class Generator:
-    def __init__(self, device = 'COM10'):
-        self._debug_mode = False
-        
-        self._serial = serial.Serial(device, 9600, timeout=1)
-        self._serialIO = io.TextIOWrapper(io.BufferedRWPair(self._serial, self._serial), newline='')
-
-    @property
-    def debug_mode(self):
-        return self._debug_mode
-
-    @debug_mode.setter
-    def debug_mode(self, value):
-        self._debug_mode = value
-
-    def is_open(self):
-        return hasattr(self, '_serial') and self._serial is not None
-
-    def close(self):
-        self._serial.close()
-        del self._serialIO
-        del self._serial
+    def __init__(self, port,cmd_timeout=0.5):
+        self.ser = None
+        self.port=port
+        self.timeout=cmd_timeout
+        #self._serialIO = io.TextIOWrapper(io.BufferedRWPair(self._serial, self._serial), newline='')
 
     def __del__(self):
         if self.is_open():
             self.close()
+
+    def open(self):
+        self.ser= serial.Serial(self.port, 9600, timeout=1)
+
+    def is_open(self):
+        return hasattr(self, 'ser') and self.ser is not None
+
+    def close(self):
+        self.ser.close()
     
-    def write(self, data):
-        if self._debug_mode:
-            print('[send] ' + data.rstrip())
-        self._serialIO.write(data)
-        self._serialIO.flush()
+    def __enter__(self):
+        self.open()
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        self.close()
     
-    def writeCmd(self, cmd):
-        self.write(cmd + '\r'+'\n')
-        time.sleep(0.1)
-    
-    def readResult(self):
-        result = self._serialIO.readline().rstrip()
+    def writeCmd(self, command):
+        if not self.is_open():
+            raise Exception("Connection is not open!")
         
-        if self._debug_mode:
-            print('[recv] ' + result)
+        self.ser.write(bytes(command, 'utf-8') + b"\n")
+        ret = self.ser.readline().decode('utf-8')
         
-        return result
+        if not ret.endswith("\n"):
+            raise Exception(f"Wrong command ending: '{command}'!")
+        
+        return ret[:-2]
+    
+    def reset_serial_buffer(self):
+        if not self.is_open():
+            raise Exception("Connection is not open!")
+        self.ser.reset_input_buffer()
+        self.ser.reset_output_buffer()
+
     
     ###########################################################################
     
