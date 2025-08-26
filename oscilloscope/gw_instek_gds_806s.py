@@ -133,9 +133,16 @@ class GWInstek:
     self.port = port
     self.timeout = default_timeout
 
+  def __del__(self):
+    if self.is_open():
+      self.close()  
+
   def open(self):
     self.ser = serial.Serial(self.port, 9600, timeout=self.timeout)
     self.identity = self.read_identity()
+
+  def is_open(self):
+     return hasattr(self, 'ser') and self.ser is not None
 
   def close(self):
     self.ser.close()
@@ -147,63 +154,66 @@ class GWInstek:
   def __exit__(self, *args, **kwargs):
     self.close()
 
-  def _cmd(self, command, accept_silent=False, timeout=None):
-    if self.ser == None:
+  def writeCmd(self, command):
+    if not self.is_open():
       raise Exception("Connection is not open!")
+        
     self.ser.write(bytes(command, 'utf-8') + b"\n")
-    self.ser.timeout = timeout if timeout is not None else self.timeout
     ret = self.ser.readline().decode('utf-8')
-    #ret.endswith("\r\n")
-    if not ret.endswith("\n") and not accept_silent:
-      raise Exception(f"No response for command: '{command}'!")
+        
+    if not ret.endswith("\n"):
+      raise Exception(f"Wrong command ending: '{command}'!")
+        
     return ret[:-2]
-
-  def _silent_cmd(self, command, timeout=0.01):
-    if self._cmd(command, accept_silent=True, timeout=timeout) == "ERR":
-      raise Exception(f"Error while executing command: '{command}'")
+    
+  def reset_serial_buffer(self):
+    if not self.is_open():
+      raise Exception("Connection is not open!")
+    self.ser.reset_input_buffer()
+    self.ser.reset_output_buffer()
 
   def read_identity(self):
-    return self._cmd("*IDN?")
+    return self.writeCmd("*IDN?")
 
   def clear_event_registers(self):
-    return self._cmd("*CLS")
+    return self.writeCmd("*CLS")
   
   def get_event_status_enable_register(self):
-    return self._cmd("*ESE?")
+    return self.writeCmd("*ESE?")
  
   def get_event_status_register(self):
-    return self._cmd("*ESR?")
+    return self.writeCmd("*ESR?")
   
   def get_status_byte_register(self):
-    return self._cmd("*STB?")
+    return self.writeCmd("*STB?")
 
   def get_oscilloscope_settings(self):
-    return self._cmd("*LRN?")
+    return self.writeCmd("*LRN?")
   
   def reset_oscilloscope_settings(self):
-    return self._cmd("*RST")
+    return self.writeCmd("*RST")
   
   def is_operation_complete(self):
-    return self._cmd("*OPC?")
+    return self.writeCmd("*OPC?")
   
   #Perform an automatic setup in order to optimize the acquisition parameters.
   def perform_autoset(self):
-    return self._cmd("AUToset")
+    return self.writeCmd("AUToset")
 
   #Controls the RUN state of trigger system. The acquisition cycle will follow each qualified trigger in the RUN state.
   def run(self):
-    return self._cmd(":RUN")
+    return self.writeCmd(":RUN")
   
   #Controls the STOP state of trigger system. The acquisition cycle only triggered when the :RUN command is received.
   def stop(self):
-    return self._cmd(":STOP")
+    return self.writeCmd(":STOP")
 
   #Select the waveform acquisition mode. There are four different acquisition mode: sample, peak detection, average and accumulate.
   #0→Select the sample mode 
   #1→Select the peak detection mode
   #2→Select the average mode
   def acquire_mode(self,number):
-    return self._cmd(f":ACQuire:MODe {number}")
+    return self.writeCmd(f":ACQuire:MODe {number}")
 
   #Select the average number of waveform acquisition. The range for averaging is from 2 to 256 in powers of 2.
   #1→Average number is 2 2→Average number is 4
@@ -211,23 +221,23 @@ class GWInstek:
   #5→Average number is 32 6→Average number is 64
   #7→Average number is 128 8→Average number is 256
   def acquire_average(self,number):
-    return self._cmd(f":ACQuire:AVERage {number}")
+    return self.writeCmd(f":ACQuire:AVERage {number}")
 
   #Select the number of record length. This oscilloscope provides record length of 500, 1250, 2500, 5000, 12500, 25000, 50000, and 125000.
   #0→Record length is 500 1→Record length is 1250 2→Record length is 2500
   #3→Record length is 5000 4→Record length is 12500 5→Record length is 25000
   #6→Record length is 50000 7→Record length is 125000
   def acquire_length(self,number):
-    return self._cmd(f":ACQuire:LENGth {number}")
+    return self.writeCmd(f":ACQuire:LENGth {number}")
 
   #<X>→Specify the channel number (1|2)
   def acquire_memory(self,channel):
-    return self._cmd(f":ACQuire<{channel}>:MEMory?")
+    return self.writeCmd(f":ACQuire<{channel}>:MEMory?")
 
   #Transfer the displayed waveform data (always 500 points data totally) from the oscilloscope. Each point is composed by two bytes (the integer value of 16 bits). The high byte (MSD) will be prior transferred.
   #<X>→Specify the channel number (1|2)
   def acquire_point(self,channel):
-    return self._cmd(f":ACQuire<{channel}>:POINt")
+    return self.writeCmd(f":ACQuire<{channel}>:POINt")
 
   #Sets the horizontal position (delay timebase) parameter.
     #Sec/div	NR3
@@ -263,7 +273,7 @@ class GWInstek:
   #5s	5
   #10s	10
   def set_timebase_delay(self,delay):
-    return self._cmd(f":TIMebase:DELay {delay}")
+    return self.writeCmd(f":TIMebase:DELay {delay}")
   
   #Sets the horizontal timebase scale per division (SEC/DIV).
   #Sec/div	NR3
@@ -299,7 +309,7 @@ class GWInstek:
   #5s	5
   #10s	10
   def set_timebase_scale(self,scale):
-    return self._cmd(f":TIMebase:SCALe {scale}")
+    return self.writeCmd(f":TIMebase:SCALe {scale}")
 
   #Select and query the trigger mode.
   #0→Auto Level
@@ -307,7 +317,7 @@ class GWInstek:
   #2→Normal
   #3→Single
   def set_trigger_mode(self,mode):
-    return self._cmd(f":TRIGger:MODe {mode}")
+    return self.writeCmd(f":TRIGger:MODe {mode}")
   
   #Select and query the trigger type.
   #0→Edge 
@@ -315,7 +325,7 @@ class GWInstek:
   #2→Pulse 
   #3→Delay
   def set_trigger_type(self,trigger_type):
-    return self._cmd(f":TRIGger:TYPe {trigger_type}")
+    return self.writeCmd(f":TRIGger:TYPe {trigger_type}")
 
   #Select and query the trigger source.
   #0→Channel 1 
@@ -323,47 +333,47 @@ class GWInstek:
   #2→External trigger 
   #3→AC line voltage
   def set_trigger_source(self,source):
-    return self._cmd(f":TRIGger:SOURce {source}")
+    return self.writeCmd(f":TRIGger:SOURce {source}")
  
   #Select and query the type of trigger coupling.
   #0→AC 
   #1→DC
   def set_trigger_couple(self,couple):
-    return self._cmd(f":TRIGger:COUPle {couple}")
+    return self.writeCmd(f":TRIGger:COUPle {couple}")
   
   #Select and query the trigger level.
   def set_trigger_level(self,level):
-    return self._cmd(f":TRIGger:LEVel {level}")
+    return self.writeCmd(f":TRIGger:LEVel {level}")
 
   #Switch and query the rising or falling trigger slope.
   #0→Rising slope 
   #1→Falling slope 
   def set_trigger_slope(self,slope):
-    return self._cmd(f":TRIGger:SLOP {slope}")
+    return self.writeCmd(f":TRIGger:SLOP {slope}")
   
   #Select and query the specified line for video signal.
   def set_trigger_video_line(self,line):
-    return self._cmd(f":TRIGger:VIDeo:LINe {line}")
+    return self.writeCmd(f":TRIGger:VIDeo:LINe {line}")
 
   #Select and query the input video polarity.
   #0→Positive-going sync pulses
   #1→Negative-going sync pulses
   def set_trigger_video_polarity(self,polarity):
-    return self._cmd(f":TRIGger:VIDeo:POLarity {polarity}")
+    return self.writeCmd(f":TRIGger:VIDeo:POLarity {polarity}")
 
   #Enable or disable the waveform invert function. 
   #<X>→Specify the channel number (1|2) 
   #0→Disable invert function 
   #1→Enable invert function 
   def enable_channel_invert(self,channel,invert):
-    return self._cmd(f":CHANnel{channel}::INVert {invert}")
+    return self.writeCmd(f":CHANnel{channel}::INVert {invert}")
 
   #Enable or disable the bandwidth limit function.
   #<X>→Specify the channel number (1|2)
   #0→Disable bandwidth limit 
   # 1→Enable bandwidth limit
   def enable_channel_bw_limit(self,channel, bw_limit):
-    return self._cmd(f":CHANnel{channel}:BWLimi {bw_limit}")
+    return self.writeCmd(f":CHANnel{channel}:BWLimi {bw_limit}")
 
   #Select the different coupling states for the oscilloscope.
   #<X>→Specify the channel number (1|2)
@@ -371,7 +381,7 @@ class GWInstek:
   #1→Place scope in DC coupling state
   #2→Place scope in grounding state
   def channel_coupling(self,channel,coupling):
-    return self._cmd(f":CHANnel{channel}:BWLimi {coupling}")
+    return self.writeCmd(f":CHANnel{channel}:BWLimi {coupling}")
 
   #Set the math expression.
   #<X>→Specify the channel number (1|2)
@@ -380,7 +390,7 @@ class GWInstek:
   #2→Select the FFT operation 
   #3→Turn off math function
   def channel_math(self,channel,math):
-    return self._cmd(f":CHANnel{channel}:MATH {math}")
+    return self.writeCmd(f":CHANnel{channel}:MATH {math}")
 
   #Sets or query the offset voltage.
   #<X>→Specify the channel number (1|2)
@@ -397,7 +407,7 @@ class GWInstek:
   #2->2V
   #5->5V
   def channel_offset(self,channel,offset):
-    return self._cmd(f":CHANnel{channel}:OFFSet {offset}")
+    return self.writeCmd(f":CHANnel{channel}:OFFSet {offset}")
 
   #Select the different probe attenuation factor.
   #<X>→Specify the channel number (1|2)
@@ -405,7 +415,7 @@ class GWInstek:
   #1→10X 
   #2→100X
   def channel_probe(self,channel,probe):
-    return self._cmd(f":CHANnel{channel}:PROBe {probe}")
+    return self.writeCmd(f":CHANnel{channel}:PROBe {probe}")
 
   #Sets or query the vertical scale of the specified channel.
   #<X>→Specify the channel number (1|2)
@@ -422,71 +432,71 @@ class GWInstek:
   #2->2V
   #5->5V
   def channel_scale(self,channel,scale):
-    return self._cmd(f":CHANnel{channel}:SCALe {scale}")
+    return self.writeCmd(f":CHANnel{channel}:SCALe {scale}")
 
   #Select the measured channel (channel 1 or 2). The default setting of measured channel is channel one.
   #1→Enable the measurement functions for channel 1
   #2→Enable the measurement functions for channel 2
   def measure_source(self, channel):
-    return self._cmd(f":MEASure:SOURce  {channel}")
+    return self.writeCmd(f":MEASure:SOURce  {channel}")
 
   #Return the value of timing measurement that taken for falling edge of the first pulse in the waveform.
   def measure_fall(self):
-    return self._cmd(f":MEASure:FALL?")
+    return self.writeCmd(f":MEASure:FALL?")
 
   #Return the value of timing measurement that taken for rising edge of the first pulse in the waveform.
   def measure_rise(self):
-    return self._cmd(f":MEASure:RISe?")
+    return self.writeCmd(f":MEASure:RISe?")
   
   #Return the value of timing measurement of the first negative pulse in the waveform.
   def measure_negative_pulse(self):
-    return self._cmd(f":MEASure:NWIDth?")
+    return self.writeCmd(f":MEASure:NWIDth?")
   
   #Return the value of timing measurement of the first positive pulse in the waveform.
   def measure_positive_pulse(self):
-    return self._cmd(f":MEASure:PWIDth?")
+    return self.writeCmd(f":MEASure:PWIDth?")
   
   #Return the ratio of the positive pulse width to the signal period
   def measure_pulse_width(self):
-    return self._cmd(f":MEASure:PDUTy?")
+    return self.writeCmd(f":MEASure:PDUTy?")
   
   #Return the value of Frequency measurement.
   def measure_frequency(self):
-    return self._cmd(f":MEASure:FREQuency?")
+    return self.writeCmd(f":MEASure:FREQuency?")
   
   #Return the timing value of period measurement.
   def measure_period(self):
-    return self._cmd(f":MEASure:PERiod?")
+    return self.writeCmd(f":MEASure:PERiod?")
   
   #Return the voltages of high value minus the low value.
   def measure_voltage_amplitude(self):
-    return self._cmd(f":MEASure:VAMPlitude?")
+    return self.writeCmd(f":MEASure:VAMPlitude?")
   
   #Return the average voltages.
   def measure_voltage_average(self):
-    return self._cmd(f":MEASure:VAVerage?")
+    return self.writeCmd(f":MEASure:VAVerage?")
   
   #Return the value of global high voltage.
   def measure_voltage_high(self):
-    return self._cmd(f":MEASure:VHI?")
+    return self.writeCmd(f":MEASure:VHI?")
   
   #Return the value of global low voltage.
   def measure_voltage_low(self):
-    return self._cmd(f":MEASure:VLO?")
+    return self.writeCmd(f":MEASure:VLO?")
   
   #Return the value of maximum amplitude.
   def measure_voltage_max(self):
-    return self._cmd(f":MEASure:VMAX?")
+    return self.writeCmd(f":MEASure:VMAX?")
   
   #Return the value of minimum amplitude.
   def measure_voltage_min(self):
-    return self._cmd(f":MEASure:VMIN?")
+    return self.writeCmd(f":MEASure:VMIN?")
   
   #Return the value of Vmax minus Vmin.
   def measure_voltage_peak_to_peak(self):
-    return self._cmd(f":MEASure:VPP?")
+    return self.writeCmd(f":MEASure:VPP?")
   
   #Return the value of true Root Mean Square voltage.
   def measure_voltage_rms(self):
-    return self._cmd(f":MEASure:VRMS?")
+    return self.writeCmd(f":MEASure:VRMS?")
   
