@@ -123,10 +123,18 @@ class GWInstek:
     return self._cmd(f":TRIGger:MODe  {mode}")
   
   #Select and query the trigger type.
+  #0→Edge 
+  #1→Video 
+  #2→Pulse 
+  #3→Delay
   def set_trigger_type(self,trigger_type):
     return self._cmd(f":TRIGger:TYPe  {trigger_type}")
 
   #Select and query the trigger source.
+  #0→Channel 1 
+  #1→Channel 2 
+  #2→External trigger 
+  #3→AC line voltage
   def set_trigger_source(self,source):
     return self._cmd(f":TRIGger:SOURce  {source}")
  
@@ -140,6 +148,7 @@ class GWInstek:
     return self._cmd(f":TRIGger:LEVel  {level}")
 
   #Switch and query the rising or falling trigger slope.
+  #0→Rising slope 1→Falling slope 
   def set_trigger_slope(self,slope):
     return self._cmd(f":TRIGger:SLOP  {slope}")
   
@@ -182,6 +191,17 @@ class GWInstek:
   #Sets or query the offset voltage.
   #<X>→Specify the channel number (1|2)
   #<NR3> is the desired offset value in volts. The range is dependent on the scale the probe attenuation factor. The offset ranges are following:
+  #0.002->2mV
+  #0.005->2mV
+  #0.01->10mV
+  #0.02->20mV
+  #0.05->50mV
+  #0.1->100mV
+  #0.2->200mV 
+  #0.5->500mV
+  #1->1V
+  #2->2V
+  #5->5V
   def channel_offset(self,channel,offset):
     return self._cmd(f":CHANnel{channel}:OFFSet {offset}")
 
@@ -194,6 +214,17 @@ class GWInstek:
   #Sets or query the vertical scale of the specified channel.
   #<X>→Specify the channel number (1|2)
   #<NR3> is the desired gain value in volts per division. The range is 2mV/div to 5V/div (with 1X probe).
+  #0.002->2mV
+  #0.005->2mV
+  #0.01->10mV
+  #0.02->20mV
+  #0.05->50mV
+  #0.1->100mV
+  #0.2->200mV 
+  #0.5->500mV
+  #1->1V
+  #2->2V
+  #5->5V
   def channel_scale(self,channel,scale):
     return self._cmd(f":CHANnel{channel}:SCALe {scale}")
 
