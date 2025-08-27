@@ -1,95 +1,115 @@
 import serial
 
-class OwonPSU:
 
-  SUPPORTED_DEVICES = {"OWON,SPE", "OWON,SPM", "OWON,P4","KIPRIM,DC"}
-
-  def __init__(self, port, default_timeout=0.5):
+###############################################################################
+class Owon:
+  
+  def __init__(self, port,cmd_timeout=0.5):
     self.ser = None
-    self.port = port
-    self.timeout = default_timeout
+    self.port=port
+    self.timeout=cmd_timeout
+    #self._serialIO = io.TextIOWrapper(io.BufferedRWPair(self._serial, self._serial), newline='')
+
+  def __del__(self):
+    if self.is_open():
+        self.close()
 
   def open(self):
-    self.ser = serial.Serial(self.port, 115200, timeout=self.timeout)
-    identity = self.read_identity()
-    if not any([s in identity for s in self.SUPPORTED_DEVICES]):
-      self.close()
-      raise Exception("Not connected to a supported PSU!")
+    self.ser= serial.Serial(self.port, 115200, timeout=1)
+
+  def is_open(self):
+    return hasattr(self, 'ser') and self.ser is not None
 
   def close(self):
     self.ser.close()
-
+  
   def __enter__(self):
     self.open()
     return self
 
   def __exit__(self, *args, **kwargs):
     self.close()
-
-  def _cmd(self, command, accept_silent=False, timeout=None):
-    if self.ser == None:
-      raise Exception("Connection is not open!")
+  
+  def writeCmd(self, command):
+    if not self.is_open():
+        raise Exception("Connection is not open!")
+      
     self.ser.write(bytes(command, 'utf-8') + b"\n")
-    self.ser.timeout = timeout if timeout is not None else self.timeout
     ret = self.ser.readline().decode('utf-8')
-    if not ret.endswith("\r\n") and not accept_silent:
-      raise Exception(f"No response for command: '{command}'!")
+      
+    if not ret.endswith("\r\n"):
+        raise Exception(f"Wrong command ending: '{command}'!")
+      
     return ret[:-2]
+  
+  def writeSilentCmd(self, command):
 
-  def _silent_cmd(self, command, timeout=0.01):
-    if self._cmd(command, accept_silent=True, timeout=timeout) == "ERR":
+    if not self.is_open():
+      raise Exception("Connection is not open!")
+      
+    self.ser.write(bytes(command, 'utf-8') + b"\n")
+    ret = self.ser.readline().decode('utf-8')
+      
+    if ret[:-2] == "ERR":
       raise Exception(f"Error while executing command: '{command}'")
 
+  def reset_serial_buffer(self):
+    if not self.is_open():
+        raise Exception("Connection is not open!")
+    self.ser.reset_input_buffer()
+    self.ser.reset_output_buffer()
+  
+  ###########################################################################
   def read_identity(self):
-    return self._cmd("*IDN?")
+    return self.writeCmd("*IDN?")
 
   def measure_voltage(self):
-    return float(self._cmd("MEASure:VOLTage?"))
+    return float(self.writeCmd("MEASure:VOLTage?"))
 
   def measure_current(self):
-    return float(self._cmd("MEASure:CURRent?"))
+    return float(self.writeCmd("MEASure:CURRent?"))
 
   def get_voltage(self):
-    return float(self._cmd("VOLTage?"))
+    return float(self.writeCmd("VOLTage?"))
 
   def get_current(self):
-    return float(self._cmd("CURRent?"))
+    return float(self.writeCmd("CURRent?"))
 
   def get_voltage_limit(self):
-    return float(self._cmd("VOLTage:LIMit?"))
+    return float(self.writeCmd("VOLTage:LIMit?"))
 
   def get_current_limit(self):
-    return float(self._cmd("CURRent:LIMit?"))
-   
+    return float(self.writeCmd("CURRent:LIMit?"))
+  
   def set_voltage(self, voltage):
-    return self._silent_cmd(f"VOLTage {voltage:.3f}")
+    return self.writeSilentCmd(f"VOLTage {voltage:.3f}")
 
   def set_current(self, current):
-    return self._silent_cmd(f"CURRent {current:.3f}")
+    return self.writeSilentCmd(f"CURRent {current:.3f}")
 
   def set_voltage_limit(self, voltage):
-    return self._silent_cmd(f"VOLTage:LIMit {voltage:.3f}")
+    return self.writeSilentCmd(f"VOLTage:LIMit {voltage:.3f}")
 
   def set_current_limit(self, current):
-    return self._silent_cmd(f"CURRent:LIMit {current:.3f}")
+    return self.writeSilentCmd(f"CURRent:LIMit {current:.3f}")
 
   def get_output(self):
-    ret = self._cmd(f"OUTPut?")
+    ret = self.writeCmd(f"OUTPut?")
+
     if ret in ["0", "1"]:
       return ret == "1"
-
     if ret not in ["ON", "OFF"]:
       raise Exception(f"Unknown return for get output command: {ret}")
     return ret == "ON"
 
   def set_output(self, enabled):
-    self._silent_cmd(f"OUTPut {'ON' if enabled else 'OFF'}")
+    self.writeSilentCmd(f"OUTPut {'ON' if enabled else 'OFF'}")
+    #System Control Commands: equivalent to 'Keylock' button on P4000 series
 
-  # System Control Commands: equivalent to 'Keylock' button on P4000 series
-  def set_keylock(self, enabled):
-    if enabled:
-      # Note: SYSTem:REMote does not work on P4603
-      self._silent_cmd("SYST:REM")
-    else:
-      # Note: SYSTem:LOCal does not work on P4603
-      self._silent_cmd("SYST:LOC")
+  #def set_keylock(self, enabled):
+  #  if enabled:
+  #  # Note: SYSTem:REMote does not work on P4603
+  #  self.writeSilentCmd("SYST:REM")
+  #  else:
+  #  # Note: SYSTem:LOCal does not work on P4603
+  #  self.writeSilentCmd("SYST:LOC")

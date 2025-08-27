@@ -31,7 +31,8 @@ class Waveform(IntEnum):
     arb4 = 20
 
 ###############################################################################
-class Generator:
+class FeelTech:
+
     def __init__(self, port,cmd_timeout=0.5):
         self.ser = None
         self.port=port
@@ -65,65 +66,66 @@ class Generator:
         self.ser.write(bytes(command, 'utf-8') + b"\n")
         ret = self.ser.readline().decode('utf-8')
         
-        if not ret.endswith("\n"):
-            raise Exception(f"Wrong command ending: '{command}'!")
+        #if not ret.endswith("\n"):
+        #    raise Exception(f"Wrong command ending: '{command}'!")
         
         return ret[:-2]
+
+    def writeSilentCmd(self, command):
+        if not self.is_open():
+            raise Exception("Connection is not open!")
+        
+        self.ser.write(bytes(command, 'utf-8') + b"\n")
+        ret = self.ser.readline().decode('utf-8')
+        
+        if ret[:-2] == "ERR":
+            raise Exception(f"Error while executing command: '{command}'")
     
     def reset_serial_buffer(self):
         if not self.is_open():
             raise Exception("Connection is not open!")
         self.ser.reset_input_buffer()
         self.ser.reset_output_buffer()
-
     
     ###########################################################################
     
     def get_device_id(self):
-        self.writeCmd('a')
-        return self.readResult()
+        return self.writeCmd('a')
 
     def set_waveform(self,waveform):
-        self.writeCmd(f'bw{waveform:1}')
-        return
+        return self.writeSilentCmd(f'bw{waveform:1}')
+        
 
     def set_frequency(self,freqInHz):
         freq=int(freqInHz*100)
-        self.writeCmd(f'bf{freq:09d}')
-        return
+        return self.writeSilentCmd(f'bf{freq:09d}')
 
     def set_amplitude(self,ampl):
-        self.writeCmd(f'ba{ampl:2.1f}')
-        return
+        return self.writeSilentCmd(f'ba{ampl:2.1f}')
 
     def set_DC_offset(self,offset):
-        self.writeCmd(f'bo{offset:3.1f}')
-        return
+        return self.writeSilentCmd(f'bo{offset:3.1f}')
+
 
     def set_duty_cycle(self,duty_cycle):
         duty=duty_cycle*10
-        self.writeCmd(f'bd{duty:3}')
-        return
+        return self.writeSilentCmd(f'bd{duty:3}')
 
     def set_pulse_width(self,pulse_width,time_unit):
         pw=int(pulse_width)*1000
-        self.writeCmd(f'bu{pw:010d}{time_unit}')
-        return
+        return self.writeSilentCmd(f'bu{pw:010d}{time_unit}')
 
     def set_sweep_time(self,sweep_time):
-        self.writeCmd(f'bt{sweep_time:>2}')
-        return
+        return self.writeSilentCmd(f'bt{sweep_time:>2}')
 
     def set_sweep_start_frequency(self,freqInHz):
         freq=int(freqInHz*100)
-        self.writeCmd(f'bb{freq:09d}')
-        return
+        return self.writeSilentCmd(f'bb{freq:09d}')
 
     def set_sweep_stop_frequency(self,freqInHz):
         freq=int(freqInHz*100)
-        self.writeCmd(f'be{freq:09d}')
-        return
-
+        return self.writeSilentCmd(f'be{freq:09d}')
+        
         #Set the sweep scan mode
     def set_scan_mode(self,sweep_mode):
         if(sweep_mode == 'lin-sweep'):
@@ -132,8 +134,7 @@ class Generator:
             mode=1
         else:
             mode=0
-        self.writeCmd(f'bm{mode:1}')
-        return
+        return self.writeSilentCmd(f'bm{mode:1}')
 
     def set_sweep_control(self,sweep_control):
         if(sweep_control == 'stop'):
@@ -142,70 +143,55 @@ class Generator:
             ctrl=1
         else:
             ctrl=0
-        self.writeCmd(f'br{ctrl:1}')
-        return
-
+        return self.writeSilentCmd(f'br{ctrl:1}')
+        
     def clear_internal_counter(self):
-        self.writeCmd(f'bc')
-        return
+        return self.writeSilentCmd(f'bc')
 
     # store parameters (frequency, duty cycle, waveform) to a storage Position (0-9)
     def store_current_parameters(self,pos):
-        self.writeCmd(f'bs{pos:1}')
-        return self.readResult()
+        return self.writeSilentCmd(f'bs{pos:1}')
 
     # load parameters (frequency, duty cycle, waveform) to a storage Position (0-9)
     def load_current_parameters(self,pos):
-        self.writeCmd(f'bl{pos:1}')
-        return self.readResult()
+        return self.writeSilentCmd(f'bl{pos:1}')
 
     # read current frequency value
     def get_frequency(self):
-        self.writeCmd('cf')
-        return self.readResult()
+        return self.writeCmd('cf')
 
     # read current external frequency measurement
     def get_external_frequency(self):
-        self.writeCmd('ce')
-        return self.readResult()
+        return self.writeCmd('ce')
 
     # read current external count
     def get_external_count(self):
-        self.writeCmd('cc')
-        return self.readResult()
+        return self.writeCmd('cc')
 
     # read currently set duty cycle
     def get_duty_cycle(self):
-        self.writeCmd('cd')
-        return self.readResult()
+        return self.writeCmd('cd')
 
     # read current sweep time value
     def get_sweep_time_values(self):
-        self.writeCmd('ct')
-        return self.readResult()
+        return self.writeCmd('ct')
 
     def set_deputy_waveform(self,waveform):
-        self.writeCmd(f'dw{waveform:1}')
-        return
+        return self.writeSilentCmd(f'dw{waveform:1}')
 
     def set_deputy_frequency(self,freqInHz):
         freq=int(freqInHz*100)
-        self.writeCmd(f'df{freq:09d}')
-        return
+        return self.writeSilentCmd(f'df{freq:09d}')
 
     def set_deputy_amplitude(self,ampl):
-        self.writeCmd(f'da{ampl:2.1f}')
-        return
-
+        return self.writeSilentCmd(f'da{ampl:2.1f}')
+        
     def set_deputy_DC_offset(self,offset):
-        self.writeCmd(f'do{offset:3.1f}')
-        return
+        return self.writeSilentCmd(f'do{offset:3.1f}')
 
     def set_deputy_wave_phase(self,phase):
-        self.writeCmd(f'dp{phase:3}')
-        return
+        return self.writeSilentCmd(f'dp{phase:3}')
 
     def set_deputy_duty_cycle(self,duty_cycle):
         duty=duty_cycle*10
-        self.writeCmd(f'dd{duty:3}')
-        return
+        return self.writeSilentCmd(f'dd{duty:3}')
