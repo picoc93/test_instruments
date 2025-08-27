@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import funcgen.fy3224s as fg;
+import awg.fy3224s as fg;
 import psu.owon_spm3051 as psu;
 import oscilloscope.gw_instek_gds_806s as osc;
 import time;
 
 ###############################################################################
-if(0):
+if(1):
     psu=psu.Owon('COM14')
     psu.open()
     print("Identity:", psu.read_identity())
@@ -27,7 +27,7 @@ if(0):
     psu.close()
 
 ###############################################################################
-if(0):
+if(1):
     funcGen = fg.FeelTech('COM10')
     funcGen.debug_mode = True
 
@@ -111,21 +111,21 @@ if(1):
     oscilloscope.channel_offset(osc.Channel.ch1,osc.Voltage_Scale.mV_1)
     oscilloscope.channel_probe(osc.Channel.ch1,osc.Channel_Probe.X_10)
     oscilloscope.channel_scale(1,osc.Voltage_Scale.mV_1)
-    oscilloscope.measure_source(osc.Channel.ch1)
-    oscilloscope.measure_fall()
-    oscilloscope.measure_rise()
-    oscilloscope.measure_negative_pulse()
-    oscilloscope.measure_positive_pulse()
-    oscilloscope.measure_pulse_width()
-    oscilloscope.measure_frequency()
-    oscilloscope.measure_period()
-    oscilloscope.measure_voltage_amplitude()
-    oscilloscope.measure_voltage_average()
-    oscilloscope.measure_voltage_high()
-    oscilloscope.measure_voltage_low()
-    oscilloscope.measure_voltage_max()
-    oscilloscope.measure_voltage_min()
-    oscilloscope.measure_voltage_peak_to_peak()
-    oscilloscope.measure_voltage_rms()
+    print("measure source:",oscilloscope.measure_source(osc.Channel.ch1))
+    print("measure fall:",oscilloscope.measure_fall())
+    print("measure rise:",oscilloscope.measure_rise())
+    print("measure negative pulse:",oscilloscope.measure_negative_pulse())
+    print("measure positive pulse:",oscilloscope.measure_positive_pulse())
+    print("measure pulse width:",oscilloscope.measure_pulse_width())
+    print("measure frequency:",oscilloscope.measure_frequency())
+    print("measure period:",oscilloscope.measure_period())
+    print("measure voltage amplitude:",oscilloscope.measure_voltage_amplitude())
+    print("measure voltage average:",oscilloscope.measure_voltage_average())
+    print("measure voltage high:",oscilloscope.measure_voltage_high())
+    print("measure voltage low:",oscilloscope.measure_voltage_low())
+    print("measure voltage max:",oscilloscope.measure_voltage_max())
+    print("measure voltage min:",oscilloscope.measure_voltage_min())
+    print("measure voltage peak to peak:",oscilloscope.measure_voltage_peak_to_peak())
+    print("measure voltage rms:",oscilloscope.measure_voltage_rms())
 
     oscilloscope.close()

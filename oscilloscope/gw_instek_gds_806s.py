@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import serial
-from enum import Enum
+from enum import Enum, IntEnum
 
 class Voltage_Scale(float, Enum):
   mV_1=0.002
@@ -50,12 +50,12 @@ class Time_Scale(float, Enum):
   s_5=5
   s_10=10
 
-class Acquire_Mode(Enum):
+class Acquire_Mode(IntEnum):
   sample_mode=0 
   peak_detection_mode=1
   average_mode=2
 
-class Acquire_Average(Enum):
+class Acquire_Average(IntEnum):
   ave_2=1
   ave_4=2
   ave_8=3
@@ -65,7 +65,7 @@ class Acquire_Average(Enum):
   ave_128=7
   ave_256=8
 
-class Acquire_Length(Enum):
+class Acquire_Length(IntEnum):
   len_500=0
   len_1250=1
   len_2500=2
@@ -75,53 +75,53 @@ class Acquire_Length(Enum):
   len_50000=6
   len_125000=7
 
-class Channel(Enum):
+class Channel(IntEnum):
   ch1=1
   ch2=2
 
-class Channel_Coupling(Enum):
+class Channel_Coupling(IntEnum):
   AC=0 
   DC=1 
   Ground=2
 
-class Channel_Probe(Enum):
+class Channel_Probe(IntEnum):
   X_1=0 
   X_10=1 
   X_100=2
 
-class Channel_Math(Enum):
+class Channel_Math(IntEnum):
   add_operator=0
   subtractor_operator=1
   FFT=2
   turn_off=3
 
-class Trigger_Mode(Enum):
+class Trigger_Mode(IntEnum):
   auto_level=0
   auto=1
   normal=2
   single=3
 
-class Trigger_Type(Enum):
+class Trigger_Type(IntEnum):
   edge=0 
   video=1 
   pulse=2 
   delay=3
 
-class Trigger_Source(Enum):
+class Trigger_Source(IntEnum):
   ch1=0 
   ch2=1 
   external=2 
   AC_line_voltage=3
 
-class Trigger_Coupling(Enum):
+class Trigger_Coupling(IntEnum):
   AC=0 
   DC=1 
 
-class Trigger_Slope(Enum):
+class Trigger_Slope(IntEnum):
   rising_slope=0
   falling_slope=1 
 
-class Trigger_Video_Polarity(Enum):
+class Trigger_Video_Polarity(IntEnum):
   positive=0
   negative=1 
 
