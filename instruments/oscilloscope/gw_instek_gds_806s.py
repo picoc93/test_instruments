@@ -3,6 +3,7 @@
 import serial
 import io
 import logging
+logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 from enum import Enum, IntEnum
 
 class Voltage_Scale(float, Enum):
@@ -132,6 +133,7 @@ class Trigger_Video_Polarity(IntEnum):
 class GWInstek:
 
   def __init__(self, port, default_timeout=0.5):
+    self.id=None
     self.serial_connection = None
     self.port = port
     self.timeout = default_timeout
@@ -187,7 +189,7 @@ class GWInstek:
     
 ###############################################################################
 
-  def read_identity(self):
+  def get_device_id(self):
     return self.writeCmd("*IDN?")
 
   def clear_event_registers(self):
