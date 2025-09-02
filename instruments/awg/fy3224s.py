@@ -2,8 +2,8 @@
 
 import serial
 import io
+import logging
 from enum import IntEnum
-import time;
 
 ###############################################################################
 
@@ -34,7 +34,7 @@ class Waveform(IntEnum):
 class FeelTech:
 
     def __init__(self, port,cmd_timeout=0.5):
-        self.ser = None
+        self.serial_connection = None
         self.port=port
         self.timeout=cmd_timeout
         #self._serialIO = io.TextIOWrapper(io.BufferedRWPair(self._serial, self._serial), newline='')
@@ -44,13 +44,13 @@ class FeelTech:
             self.close()
 
     def open(self):
-        self.ser= serial.Serial(self.port, 9600, timeout=1)
+        self.serial_connection= serial.Serial(self.port, 9600, timeout=1)
 
     def is_open(self):
-        return hasattr(self, 'ser') and self.ser is not None
+        return hasattr(self, 'serial_connection') and self.serial_connection is not None
 
     def close(self):
-        self.ser.close()
+        self.serial_connection.close()
     
     def __enter__(self):
         self.open()
@@ -63,8 +63,8 @@ class FeelTech:
         if not self.is_open():
             raise Exception("Connection is not open!")
         
-        self.ser.write(bytes(command, 'utf-8') + b"\n")
-        ret = self.ser.readline().decode('utf-8')
+        self.serial_connection.write(bytes(command, 'utf-8') + b"\n")
+        ret = self.serial_connection.readline().decode('utf-8')
         
         #if not ret.endswith("\n"):
         #    raise Exception(f"Wrong command ending: '{command}'!")
@@ -75,8 +75,8 @@ class FeelTech:
         if not self.is_open():
             raise Exception("Connection is not open!")
         
-        self.ser.write(bytes(command, 'utf-8') + b"\n")
-        ret = self.ser.readline().decode('utf-8')
+        self.serial_connection.write(bytes(command, 'utf-8') + b"\n")
+        ret = self.serial_connection.readline().decode('utf-8')
         
         if ret[:-2] == "ERR":
             raise Exception(f"Error while executing command: '{command}'")
@@ -84,8 +84,8 @@ class FeelTech:
     def reset_serial_buffer(self):
         if not self.is_open():
             raise Exception("Connection is not open!")
-        self.ser.reset_input_buffer()
-        self.ser.reset_output_buffer()
+        self.serial_connection.reset_input_buffer()
+        self.serial_connection.reset_output_buffer()
     
     ###########################################################################
     

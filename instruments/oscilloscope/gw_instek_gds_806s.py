@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import serial
+import io
+import logging
 from enum import Enum, IntEnum
 
 class Voltage_Scale(float, Enum):
@@ -130,7 +132,7 @@ class Trigger_Video_Polarity(IntEnum):
 class GWInstek:
 
   def __init__(self, port, default_timeout=0.5):
-    self.ser = None
+    self.serial_connection = None
     self.port = port
     self.timeout = default_timeout
 
@@ -139,14 +141,14 @@ class GWInstek:
       self.close()  
 
   def open(self):
-    self.ser = serial.Serial(self.port, 9600, timeout=self.timeout)
+    self.serial_connection = serial.Serial(self.port, 9600, timeout=self.timeout)
     self.identity = self.read_identity()
 
   def is_open(self):
-     return hasattr(self, 'ser') and self.ser is not None
+     return hasattr(self, 'serial_connection') and self.serial_connection is not None
 
   def close(self):
-    self.ser.close()
+    self.serial_connection.close()
 
   def __enter__(self):
     self.open()
@@ -159,8 +161,8 @@ class GWInstek:
     if not self.is_open():
       raise Exception("Connection is not open!")
         
-    self.ser.write(bytes(command, 'utf-8') + b"\n")
-    ret = self.ser.readline().decode('utf-8')
+    self.serial_connection.write(bytes(command, 'utf-8') + b"\n")
+    ret = self.serial_connection.readline().decode('utf-8')
         
     if not ret.endswith("\n"):
       raise Exception(f"Wrong command ending: '{command}'!")
@@ -171,8 +173,8 @@ class GWInstek:
     if not self.is_open():
       raise Exception("Connection is not open!")
         
-    self.ser.write(bytes(command, 'utf-8') + b"\n")
-    ret = self.ser.readline().decode('utf-8')
+    self.serial_connection.write(bytes(command, 'utf-8') + b"\n")
+    ret = self.serial_connection.readline().decode('utf-8')
         
     if ret[:-2] == "ERR":
       raise Exception(f"Error while executing command: '{command}'")
@@ -180,8 +182,8 @@ class GWInstek:
   def reset_serial_buffer(self):
     if not self.is_open():
       raise Exception("Connection is not open!")
-    self.ser.reset_input_buffer()
-    self.ser.reset_output_buffer()
+    self.serial_connection.reset_input_buffer()
+    self.serial_connection.reset_output_buffer()
     
 ###############################################################################
 

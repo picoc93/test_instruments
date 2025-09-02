@@ -134,6 +134,3 @@ class Frequency_Response_Test():
         print("Get Current:", psu.get_current())
         print("Set Voltage:",psu.set_voltage(3))
         print("Set Current:",psu.set_current(2))
-
-
- 
