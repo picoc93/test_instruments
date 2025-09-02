@@ -7,7 +7,6 @@ logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S
 from enum import IntEnum
 
 ###############################################################################
-
 class Waveform(IntEnum):
     sine = 0
     square = 1
@@ -42,28 +41,28 @@ class FeelTech:
         #self._serialIO = io.TextIOWrapper(io.BufferedRWPair(self._serial, self._serial), newline='')
 
     def __del__(self):
-        if self.is_open():
-            self.close()
+        if self.is_connected():
+            self.close_connection()
 
-    def open(self):
+    def connect(self):
         self.serial_connection= serial.Serial(self.port, 9600, timeout=1)
         self.id = self.get_device_id()
 
-    def is_open(self):
+    def is_connected(self):
         return hasattr(self, 'serial_connection') and self.serial_connection is not None
 
-    def close(self):
+    def close_connection(self):
         self.serial_connection.close()
     
     def __enter__(self):
-        self.open()
+        self.connect()
         return self
 
     def __exit__(self, *args, **kwargs):
-        self.close()
+        self.close_connection()
     
     def writeCmd(self, command):
-        if not self.is_open():
+        if not self.is_connected():
             raise Exception("Connection is not open!")
         
         logging.INFO("->"+self.id+": "+command)
@@ -77,7 +76,7 @@ class FeelTech:
         return ret[:-2]
 
     def writeSilentCmd(self, command):
-        if not self.is_open():
+        if not self.is_connected():
             raise Exception("Connection is not open!")
         
         logging.INFO("->"+self.id+": "+command)
@@ -88,7 +87,7 @@ class FeelTech:
             raise Exception(f"Error while executing command: '{command}'")
     
     def reset_serial_buffer(self):
-        if not self.is_open():
+        if not self.is_connected():
             raise Exception("Connection is not open!")
         self.serial_connection.reset_input_buffer()
         self.serial_connection.reset_output_buffer()

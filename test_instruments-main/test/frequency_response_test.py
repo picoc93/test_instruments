@@ -1,47 +1,18 @@
 #!/usr/bin/env python3
 
-import instruments.awg.fy3224s as fg;
-import instruments.psu.owon_spm3051 as psu;
-import instruments.oscilloscope.gw_instek_gds_806s as osc;
-import time;
+import time
+import bench.Bench
 
 ###############################################################################
+class Frequency_Response_Test:
 
-class Frequency_Response_Test():
+    def test_initialize():
+        power_supply_init()
+        function_generator_init()
+        oscilloscope_init()
 
-    def __init__(self):
-        self.power_supply=None
-        self.function_generator=None
-        self.oscilloscope=None
-        self.start_time=None
-        self.stop_time=None
-        
-        self.power_supply_connect()
-        self.function_generator_connect()
-        self.oscilloscope_connect()
 
-        self.power_supply_init()        
-        self.function_generator_init()
-        self.oscilloscope_init()
-
-    def __del__(self):
-        self.power_supply.close()
-        self.function_generator.close()
-        self.oscilloscope.close()
-
-    def power_supply_connect(self):
-        self.power_supply=psu.Owon('COM14')
-        self.power_supply.open()
-
-    def function_generator_connect(self):
-        self.function_generator = fg.FeelTech('COM10')
-        self.function_generator.open()
-
-    def oscilloscope_connect(self):
-        self.oscilloscope=osc.GWInstek('COM11')
-        self.oscilloscope.open()
-
-    def power_supply_init(self):
+    def power_supply_init():
         self.power_supply.set_voltage_limit(10)
         self.power_supply.set_current_limit(1)
         self.power_supply.set_output(True)
@@ -119,4 +90,4 @@ class Frequency_Response_Test():
         
         self.oscilloscope.stop()
 
-        self.start_time=time.time()
+        self.stop_time=time.time()
