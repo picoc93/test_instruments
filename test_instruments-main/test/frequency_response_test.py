@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
 
 import time
-import bench.Bench
 
 ###############################################################################
 class Frequency_Response_Test:
 
-    def test_initialize():
-        power_supply_init()
-        function_generator_init()
-        oscilloscope_init()
+    def __init__(self, bench):
+        #required instruments
+        self.bench=bench        
 
-
-    def power_supply_init():
-        self.power_supply.set_voltage_limit(10)
+    def power_supply_init(self):
+        self.bench.power_supply.set_voltage_limit(10)
         self.power_supply.set_current_limit(1)
         self.power_supply.set_output(True)
 

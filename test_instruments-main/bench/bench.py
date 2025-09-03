@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-import instruments.awg.fy3224s as fg;
-import instruments.psu.owon_spm3051 as psu;
-import instruments.oscilloscope.gw_instek_gds_806s as osc;
+import instrument.awg.fy3224s as fg;
+import instrument.psu.owon_spm3051 as psu;
+import instrument.oscilloscope.gw_instek_gds_806s as osc;
 
 ###############################################################################
 class Bench:
