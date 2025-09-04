@@ -4,4 +4,4 @@ __all__ = [
     'gw_instek_gds_806s'
 ]
 
-from . import *
+from .gw_instek_gds_806s import *

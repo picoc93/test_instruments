@@ -6,4 +6,6 @@ __all__ = [
     'awg'
 ]
 
-from . import *
+from .psu import *
+from .oscilloscope import *
+from .awg import *

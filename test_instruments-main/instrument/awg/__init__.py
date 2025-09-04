@@ -4,4 +4,4 @@ __all__ = [
     'fy3224s'
 ]
 
-from . import *
+from .fy3224s import *

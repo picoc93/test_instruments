@@ -4,4 +4,4 @@ __all__ = [
     'owon_spm3051'
 ]
 
-from . import *
+from .owon_spm3051 import *
