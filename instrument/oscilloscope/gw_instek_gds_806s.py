@@ -136,6 +136,10 @@ class GWInstek (instrument.Instrument):
 
   def writeSilentCmd(self, command):
     super().writeSilentCmd(self, command, b"\n")
+  
+  def connect(self,baud_rate):
+    super().connect(self,baud_rate)
+    super().id=self.get_device_id()
 
 ###############################################################################
 
