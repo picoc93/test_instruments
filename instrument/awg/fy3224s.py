@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
-
-import serial
-import io
-import logging
-logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-from enum import IntEnum
+from enum import IntEnum, Enum
+import instrument
 
 ###############################################################################
 class Waveform(IntEnum):
@@ -30,67 +26,31 @@ class Waveform(IntEnum):
     arb3 = 19
     arb4 = 20
 
+class Time_Unit(Enum):
+    ns="ns"
+    us="us"
+    ms="ms"
+
+class Sweep_Control(Enum):
+    pause=0
+    start=1
+
+class Scan_Mode(Enum):
+    linear=0
+    log=1
+
+
 ###############################################################################
-class FeelTech:
+class FeelTech (instrument.Instrument):
 
     def __init__(self, port,cmd_timeout=0.5):
-        self.id=None
-        self.serial_connection = None
-        self.port=port
-        self.timeout=cmd_timeout
-        #self._serialIO = io.TextIOWrapper(io.BufferedRWPair(self._serial, self._serial), newline='')
+        super().__init__(port,cmd_timeout)
 
-    def __del__(self):
-        if self.is_connected():
-            self.close_connection()
-
-    def connect(self):
-        self.serial_connection= serial.Serial(self.port, 9600, timeout=1)
-        self.id = self.get_device_id()
-
-    def is_connected(self):
-        return hasattr(self, 'serial_connection') and self.serial_connection is not None
-
-    def close_connection(self):
-        self.serial_connection.close()
-    
-    def __enter__(self):
-        self.connect()
-        return self
-
-    def __exit__(self, *args, **kwargs):
-        self.close_connection()
-    
     def writeCmd(self, command):
-        if not self.is_connected():
-            raise Exception("Connection is not open!")
-        
-        logging.INFO("->"+self.id+": "+command)
-        self.serial_connection.write(bytes(command, 'utf-8') + b"\n")
-        ret = self.serial_connection.readline().decode('utf-8')
-        logging.INFO("<-"+self.id+": "+ret)
-        
-        #if not ret.endswith("\n"):
-        #    raise Exception(f"Wrong command ending: '{command}'!")
-        
-        return ret[:-2]
+        super().writeCmd(self, command, b"\n")
 
     def writeSilentCmd(self, command):
-        if not self.is_connected():
-            raise Exception("Connection is not open!")
-        
-        logging.INFO("->"+self.id+": "+command)
-        self.serial_connection.write(bytes(command, 'utf-8') + b"\n")
-        ret = self.serial_connection.readline().decode('utf-8')
-        
-        if ret[:-2] == "ERR":
-            raise Exception(f"Error while executing command: '{command}'")
-    
-    def reset_serial_buffer(self):
-        if not self.is_connected():
-            raise Exception("Connection is not open!")
-        self.serial_connection.reset_input_buffer()
-        self.serial_connection.reset_output_buffer()
+        super().writeSilentCmd(self, command, b"\n")
     
     ###########################################################################
     
