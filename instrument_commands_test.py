@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
-import awg.fy3224s as fg;
-import psu.owon_spm3051 as psu;
-import oscilloscope.gw_instek_gds_806s as osc;
-import time;
+import instrument
+import time
 
 ###############################################################################
 if(1):
-    psu=psu.Owon('COM14')
+    psu=instrument.psu.Owon('COM14')
     psu.open()
     print("Identity:", psu.read_identity())
     print("Measured Voltage:", psu.measure_voltage())
@@ -28,7 +26,7 @@ if(1):
 
 ###############################################################################
 if(1):
-    funcGen = fg.FeelTech('COM10')
+    funcGen = instrument.FeelTech('COM10')
 
     funcGen.open()
 
@@ -69,7 +67,7 @@ if(1):
 ###############################################################################
 
 if(1):
-    oscilloscope=osc.GWInstek('COM11')
+    oscilloscope=instrument.GWInstek('COM11')
     oscilloscope.open()
 
     print("Identity:",oscilloscope.read_identity())
