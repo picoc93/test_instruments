@@ -1,72 +1,19 @@
 #!/usr/bin/env python3
+import instrument
 
-import serial
-import io
-import logging
-logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 ###############################################################################
-class Owon:
+class Owon (instrument.Instrument):
   
   def __init__(self, port,cmd_timeout=0.5):
-    self.id=None
-    self.serial_connection = None
-    self.port=port
-    self.timeout=cmd_timeout
-    #self._serialIO = io.TextIOWrapper(io.BufferedRWPair(self._serial, self._serial), newline='')
+    super().__init__(port,cmd_timeout)
 
-  def __del__(self):
-    if self.is_connected():
-        self.close_connection()
-
-  def connect(self):
-    self.serial_connection= serial.Serial(self.port, 115200, timeout=1)
-    self.id=self.get_device_id()
-
-  def is_connected(self):
-    return hasattr(self, 'serial_connection') and self.serial_connection is not None
-
-  def close_connection(self):
-    self.serial_connection.close()
-  
-  def __enter__(self):
-    self.connect()
-    return self
-
-  def __exit__(self, *args, **kwargs):
-    self.close_connection()
-  
   def writeCmd(self, command):
-    if not self.is_connected():
-      raise Exception("Connection is not open!")
-    
-    logging.INFO("->"+self.id+": "+command)    
-    self.serial_connection.write(bytes(command, 'utf-8') + b"\n")
-    ret = self.serial_connection.readline().decode('utf-8')
-    logging.INFO("<-"+self.id+": "+ret)
-      
-    if not ret.endswith("\r\n"):
-      raise Exception(f"Wrong command ending: '{command}'!")
-      
-    return ret[:-2]
-  
-  def writeSilentCmd(self, command):
-    if not self.is_connected():
-      raise Exception("Connection is not open!")
-    
-    logging.INFO("->"+self.id+": "+command) 
-    self.serial_connection.write(bytes(command, 'utf-8') + b"\n")
-    ret = self.serial_connection.readline().decode('utf-8')
-      
-    if ret[:-2] == "ERR":
-      raise Exception(f"Error while executing command: '{command}'")
+    super().writeCmd(self, command, b"\n")
 
-  def reset_serial_buffer(self):
-    if not self.is_connected():
-        raise Exception("Connection is not open!")
-    self.serial_connection.reset_input_buffer()
-    self.serial_connection.reset_output_buffer()
-  
+  def writeSilentCmd(self, command):
+    super().writeSilentCmd(self, command, b"\n")
+
   ###########################################################################
   def get_device_id(self):
     return self.writeCmd("*IDN?")
