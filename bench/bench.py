@@ -11,15 +11,15 @@ class Bench:
     self.oscilloscope=None
 
   def connect_psu(self,port):
-    self.power_supply=psu.Owon(port)
+    self.power_supply=instrument.psu.Owon(port)
     #self.power_supply.connect()
 
   def connect_function_generator(self,port):
-    self.function_generator=awg.FeelTech(port)
+    self.function_generator=instrument.awg.FeelTech(port)
     #self.power_supply.connect()
 
   def connect_oscilloscope(self,port):
-    self.oscilloscope=oscilloscope.GWInstek(port)
+    self.oscilloscope=instrument.oscilloscope.GWInstek(port)
     #self.power_supply.connect()
 
   def disconnect_psu(self):

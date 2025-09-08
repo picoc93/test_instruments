@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from enum import Enum, IntEnum
+import instrument
 
 ###############################################################################
 class Voltage_Scale(float, Enum):
@@ -126,7 +127,7 @@ class Trigger_Video_Polarity(IntEnum):
   negative=1 
 
 ###############################################################################
-class GWInstek (Instrument):
+class GWInstek (instrument.Instrument):
 
   def __init__(self, port, default_timeout=0.5):
     super().__init__(port,default_timeout)

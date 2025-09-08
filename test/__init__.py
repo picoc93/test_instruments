@@ -4,4 +4,4 @@ __all__ = [
     'frequency_response_test'
 ]
 
-from . import *
+from .frequency_response_test import *
