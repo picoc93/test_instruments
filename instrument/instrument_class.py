@@ -3,7 +3,7 @@
 import serial
 import io
 import logging
-logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+logging.basicConfig(filename='./log/example.log',format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 ###############################################################################
 class Instrument:
@@ -20,29 +20,30 @@ class Instrument:
 
   def connect(self,baud_rate):
     self.serial_connection = serial.Serial(self.port, baud_rate, timeout=self.timeout)
-    self.id = self.get_device_id()
 
   def is_connected(self):
-     return hasattr(self, 'serial_connection') and self.serial_connection is not None
+    return hasattr(self, 'serial_connection') and self.serial_connection is not None
 
   def close_connection(self):
     self.serial_connection.close()
 
-  def __enter__(self):
-    self.connect()
-    return self
-
-  def __exit__(self, *args, **kwargs):
-    self.close_connection()
+  def set_id(self,id):
+    self.id=id
 
   def writeCmd(self, command, end_string):
     if not self.is_connected():
       raise Exception("Connection is not open!")
-   
-    logging.INFO("->"+self.id+": "+command)    
-    self.serial_connection.write(bytes(command+end_string, 'utf-8'))
-    ret = self.serial_connection.readline().decode('utf-8')
-    logging.INFO("<-"+self.id+": "+ret)
+
+    if(self.id is not None):
+      self.serial_connection.write(bytes(command+end_string, 'utf-8'))
+      logging.info("->"+self.id+": "+command)   
+      ret = self.serial_connection.readline().decode('utf-8')
+      logging.info("<-"+self.id+": "+ret)
+    else:
+      self.serial_connection.write(bytes(command+end_string, 'utf-8'))
+      logging.info("-> "+command)   
+      ret = self.serial_connection.readline().decode('utf-8')
+      logging.info("<- "+ret)
         
     if not ret.endswith(end_string):
       raise Exception(f"Wrong command ending: '{command}'!")
@@ -53,7 +54,7 @@ class Instrument:
     if not self.is_connected():
       raise Exception("Connection is not open!")
     
-    logging.INFO("->"+self.id+": "+command)
+    logging.info("->"+self.id+": "+command)
     self.serial_connection.write(bytes(command+end_string, 'utf-8') )
     ret = self.serial_connection.readline().decode('utf-8')
         

@@ -21,7 +21,7 @@ class Instrument_Commands_Test:
         return
 
     def test_loop(self):
-        self.bench.power_supply.read_identity()
+        self.bench.power_supply.get_device_id()
         self.bench.power_supply.measure_voltage()
         self.bench.power_supply.measure_current()
         self.bench.power_supply.get_voltage()
@@ -33,10 +33,10 @@ class Instrument_Commands_Test:
         self.bench.power_supply.set_current(2)
         self.bench.power_supply.set_voltage_limit(30)
         self.bench.power_supply.set_current_limit(3)
-        self.bench.power_supply.psu.set_output(True)
+        self.bench.power_supply.set_output(True)
 
         self.bench.function_generator.get_device_id()
-        self.bench.function_generator.set_waveform(self.bench.function_generator.Waveform.square)
+        self.bench.function_generator.set_waveform(function_generator.Waveform.square)
         self.bench.function_generator.set_frequency(1010.11)
         self.bench.function_generator.set_amplitude(1.1)
         self.bench.function_generator.set_DC_offset(2.4)

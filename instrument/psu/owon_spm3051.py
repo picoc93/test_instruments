@@ -8,14 +8,15 @@ class Owon (instrument.Instrument):
     super().__init__(port,cmd_timeout)
 
   def writeCmd(self, command):
-    super().writeCmd(self, command, b"\n")
+    return super().writeCmd(command, "\r\n")
 
   def writeSilentCmd(self, command):
-    super().writeSilentCmd(self, command, b"\n")
+    super().writeSilentCmd(command, "\r\n")
   
   def connect(self,baud_rate):
-    super().connect(self,baud_rate)
-    super().id=self.get_device_id()
+    super().connect(baud_rate)
+    id=self.get_device_id()
+    super().set_id(id)
 
   ###########################################################################
   def get_device_id(self):
