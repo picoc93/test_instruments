@@ -3,7 +3,7 @@
 import serial
 import io
 import logging
-logging.basicConfig(filename='./log/example.log',
+logging.basicConfig(filename='./test_instruments/log/example.log',
                     filemode='w',# 'w' for write (overwrite), 'a' for append
                     level=logging.DEBUG,
                     format='%(asctime)s %(message)s', 
@@ -32,6 +32,8 @@ class Instrument:
     self.serial_connection.close()
 
   def set_id(self,id):
+    id = id.replace("\r", "") 
+    id = id.replace("\n", "") 
     self.id=id
 
   def writeCmd(self, command, tx_end_string, rx_end_string):
@@ -51,9 +53,8 @@ class Instrument:
         
     if not ret.endswith(rx_end_string):
      raise Exception(f"Wrong command ending: '{command}'!")
-    
-    n=len(rx_end_string)
-    return ret[:-n]
+
+    return ret
 
   def writeSilentCmd(self, command,tx_end_string):
     if not self.is_connected():

@@ -26,7 +26,7 @@ class Waveform(IntEnum):
     arb3 = 19
     arb4 = 20
 
-class Time_Unit(Enum):
+class Time_Unit(str,Enum):
     ns="ns"
     us="us"
     ms="ms"

@@ -53,13 +53,7 @@ class Owon (instrument.Instrument):
     return self.writeSilentCmd(f"CURRent:LIMit {current:.3f}")
 
   def get_output(self):
-    ret = self.writeCmd(f"OUTPut?")
-
-    if ret in ["0", "1"]:
-      return ret == "1"
-    if ret not in ["ON", "OFF"]:
-      raise Exception(f"Unknown return for get output command: {ret}")
-    return ret == "ON"
+    return self.writeCmd(f"OUTPut?")
 
   def set_output(self, enabled):
     self.writeSilentCmd(f"OUTPut {'ON' if enabled else 'OFF'}")
