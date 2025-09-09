@@ -132,10 +132,10 @@ class GWInstek (instrument.Instrument):
     super().__init__(port,cmd_timeout)
 
   def writeCmd(self, command):
-    return super().writeCmd(command, "\n")
+    return super().writeCmd(command,"\n","\n")
 
   def writeSilentCmd(self, command):
-    super().writeSilentCmd(command, "\n")
+    super().writeSilentCmd(command,"\n")
   
   def connect(self,baud_rate):
     super().connect(baud_rate)

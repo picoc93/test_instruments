@@ -3,7 +3,11 @@
 import serial
 import io
 import logging
-logging.basicConfig(filename='./log/example.log',format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+logging.basicConfig(filename='./log/example.log',
+                    filemode='w',# 'w' for write (overwrite), 'a' for append
+                    level=logging.DEBUG,
+                    format='%(asctime)s %(message)s', 
+                    datefmt='%m/%d/%Y %I:%M:%S %p')
 
 ###############################################################################
 class Instrument:
@@ -30,32 +34,33 @@ class Instrument:
   def set_id(self,id):
     self.id=id
 
-  def writeCmd(self, command, end_string):
+  def writeCmd(self, command, tx_end_string, rx_end_string):
     if not self.is_connected():
       raise Exception("Connection is not open!")
 
     if(self.id is not None):
-      self.serial_connection.write(bytes(command+end_string, 'utf-8'))
+      self.serial_connection.write(bytes(command+tx_end_string, 'utf-8'))
       logging.info("->"+self.id+": "+command)   
       ret = self.serial_connection.readline().decode('utf-8')
       logging.info("<-"+self.id+": "+ret)
     else:
-      self.serial_connection.write(bytes(command+end_string, 'utf-8'))
+      self.serial_connection.write(bytes(command+tx_end_string, 'utf-8'))
       logging.info("-> "+command)   
       ret = self.serial_connection.readline().decode('utf-8')
       logging.info("<- "+ret)
         
-    if not ret.endswith(end_string):
-      raise Exception(f"Wrong command ending: '{command}'!")
-        
-    return ret[:-2]
+    if not ret.endswith(rx_end_string):
+     raise Exception(f"Wrong command ending: '{command}'!")
+    
+    n=len(rx_end_string)
+    return ret[:-n]
 
-  def writeSilentCmd(self, command,end_string):
+  def writeSilentCmd(self, command,tx_end_string):
     if not self.is_connected():
       raise Exception("Connection is not open!")
     
     logging.info("->"+self.id+": "+command)
-    self.serial_connection.write(bytes(command+end_string, 'utf-8') )
+    self.serial_connection.write(bytes(command+tx_end_string, 'utf-8') )
     ret = self.serial_connection.readline().decode('utf-8')
         
     if ret[:-2] == "ERR":

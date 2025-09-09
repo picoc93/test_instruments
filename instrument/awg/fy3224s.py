@@ -32,7 +32,7 @@ class Time_Unit(Enum):
     ms="ms"
 
 class Sweep_Control(Enum):
-    pause=0
+    stop=0
     start=1
 
 class Scan_Mode(Enum):
@@ -46,10 +46,10 @@ class FeelTech (instrument.Instrument):
         super().__init__(port,cmd_timeout)
 
     def writeCmd(self, command):
-        return super().writeCmd(command, "")
+        return super().writeCmd(command,"\r\n","")
 
     def writeSilentCmd(self, command):
-        super().writeSilentCmd(command, "")
+        super().writeSilentCmd(command,"\r\n")
 
     def connect(self,baud_rate):
         super().connect(baud_rate)
