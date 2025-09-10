@@ -95,22 +95,10 @@ class FeelTech (instrument.Instrument):
         
         #Set the sweep scan mode
     def set_scan_mode(self,sweep_mode):
-        if(sweep_mode == 'lin-sweep'):
-            mode=0
-        elif(sweep_mode == 'log-sweep'):
-            mode=1
-        else:
-            mode=0
-        return self.writeSilentCmd(f'bm{mode:1}')
+        return self.writeSilentCmd(f'bm{sweep_mode:1}')
 
     def set_sweep_control(self,sweep_control):
-        if(sweep_control == 'stop'):
-            ctrl=0
-        elif(sweep_control == 'start'):
-            ctrl=1
-        else:
-            ctrl=0
-        return self.writeSilentCmd(f'br{ctrl:1}')
+        return self.writeSilentCmd(f'br{sweep_control:1}')
         
     def clear_internal_counter(self):
         return self.writeSilentCmd(f'bc')
