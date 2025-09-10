@@ -10,7 +10,7 @@ class Bench:
     self.function_generator=None
     self.oscilloscope=None
 
-  def connect_psu(self,port):
+  def connect_power_supply(self,port):
     self.power_supply=instrument.psu.Owon(port)
     self.power_supply.connect(115200)
 
