@@ -36,7 +36,7 @@ class Instrument:
     id = id.replace("\n", "") 
     self.id=id
 
-  def writeCmd(self, command, tx_end_string, rx_end_string):
+  def writeCmd(self, command, tx_end_string):
     if not self.is_connected():
       raise Exception("Connection is not open!")
 
@@ -50,9 +50,9 @@ class Instrument:
       logging.info("-> "+command)   
       ret = self.serial_connection.readline().decode('utf-8')
       logging.info("<- "+ret)
-        
-    if not ret.endswith(rx_end_string):
-     raise Exception(f"Wrong command ending: '{command}'!")
+    
+    ret = ret.replace("\r", "") 
+    ret = ret.replace("\n", "") 
 
     return ret
 
@@ -64,8 +64,10 @@ class Instrument:
     self.serial_connection.write(bytes(command+tx_end_string, 'utf-8') )
     ret = self.serial_connection.readline().decode('utf-8')
         
-    if ret[:-2] == "ERR":
-      raise Exception(f"Error while executing command: '{command}'")
+    ret = ret.replace("\r", "") 
+    ret = ret.replace("\n", "") 
+
+    return ret
     
   def reset_serial_buffer(self):
     if not self.is_connected():
