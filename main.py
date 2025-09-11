@@ -220,7 +220,7 @@ def main():
     ]
 
     test_handler.add_test_to_stack(test.Instrument_Commands_Test(test_bench))
-    test_handler.add_test_to_stack(test.Frequency_Response_Test(test_bench,[20,200,2000,20000]))
+    test_handler.add_test_to_stack(test.Frequency_Response_Test(test_bench,frequency_list))
 
     test_handler.run_test_stack_voltage_loop()
 
