@@ -1,21 +1,18 @@
 #!/usr/bin/env python3
 import instrument
-import time
 
 class Frequency_Response_Test:
 
-    def __init__(self, bench):
-        #required instruments
-        self.start_time=None
-        self.stop_time=None
-        self.bench=bench        
+    def __init__(self, bench, frequency_array):
+        self.id="Frequency Response Test"
+        self.bench=bench
+        self.frequency_array=frequency_array
+        self.power_array=[]
 
     def run(self):
-        self.start_time=time.time()
         self.test_initialization()
         self.test_loop()
         self.test_termination()
-        self.stop_time=time.time()
 
     def test_initialization(self):
         self.power_supply_init()
