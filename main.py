@@ -12,11 +12,14 @@ def main():
     test_bench.connect_power_supply('COM22')
 
     test_handler=test_manager.Test_Manager(test_bench)
-    test_handler.set_voltage_list([3.8])
+    test_handler.add_external_voltage_to_stack(test_manager.External_Voltage.LV)
+    test_handler.add_external_voltage_to_stack(test_manager.External_Voltage.NV)
+    test_handler.add_external_voltage_to_stack(test_manager.External_Voltage.HV)
+
     test_handler.add_test_to_stack(test.Instrument_Commands_Test(test_bench))
     test_handler.add_test_to_stack(test.Frequency_Response_Test(test_bench))
 
-    test_handler.run_test_stack()
+    test_handler.run_test_stack_voltage_loop()
 
 if __name__ == "__main__":
     main()
