@@ -4,6 +4,7 @@ import instrument
 class Instrument_Commands_Test:
 
     def __init__(self, bench):
+        self.id="Instrument Commands Test"
         self.bench=bench        
 ###############################################################################
 
