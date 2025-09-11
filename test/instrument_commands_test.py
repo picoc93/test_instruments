@@ -1,22 +1,16 @@
 #!/usr/bin/env python3
 import instrument
-import time
 
 class Instrument_Commands_Test:
 
     def __init__(self, bench):
-        #required instruments
-        self.start_time=None
-        self.stop_time=None
         self.bench=bench        
 ###############################################################################
 
     def run(self):
-        self.start_time=time.time()
         self.test_initialization()
         self.test_loop()
         self.test_termination()
-        self.stop_time=time.time()
 
     def test_initialization(self):
         return
