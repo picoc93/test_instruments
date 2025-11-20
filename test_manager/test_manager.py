@@ -1,16 +1,7 @@
 #!/usr/bin/env python3
-from enum import Enum
+
 import time
 
-###############################################################################
-class External_Voltage(float,Enum):
-    ELV=3.0
-    LV=3.3
-    NV=3.8
-    HV=4.0
-    EHV=4.4
-
-###############################################################################
 class Test_Manager: #run tests, collect measures, insert measures in DB
 
     def __init__(self,bench):
