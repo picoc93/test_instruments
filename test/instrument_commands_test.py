@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 import instrument
+import json
 
 class Instrument_Commands_Test:
 
     def __init__(self, bench):
-        self.id="Instrument Commands Test"
+        self.id="instrument_commands_test"
         self.bench=bench        
-###############################################################################
+
+        with open(self.id+'.json') as f:
+            d = json.load(f)
+            print(d)
 
     def run(self):
         self.test_initialization()

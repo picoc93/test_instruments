@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 import instrument
+import json
 
 class Frequency_Response_Test:
 
-    def __init__(self, bench, frequency_array):
-        self.id="Frequency Response Test"
+    def __init__(self, bench):
+        self.id="frequency_response_test"
         self.bench=bench
-        self.frequency_array=frequency_array
-        self.voltage_array=[]
+
+        with open(self.id+'.json') as f:
+            d = json.load(f)
+            print(d)
 
     def run(self):
         self.test_initialization()
