@@ -1,1 +1,2 @@
-le variabili le lasciamo fuori dal codice nel json
+- le variabili le lasciamo fuori dal codice nel json
+- fare una classe test generica da cui i singoli test ereditano
