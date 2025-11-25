@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import instrument
 
-###############################################################################
 class Bench:
 
   def __init__(self,bench_id):

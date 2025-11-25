@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-
 __all__ = [
-    'frequency_response_test'
-    'instrument_commands_test'
+    'test_class',
+    'electronic_boards',
+    'instrument_debug'
 ]
 
-from .frequency_response_test import *
-from .instrument_commands_test import *
+from .test_class import *
+import test.electronic_boards
+import test.instrument_debug

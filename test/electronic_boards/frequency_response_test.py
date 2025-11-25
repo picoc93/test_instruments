@@ -1,23 +1,19 @@
 #!/usr/bin/env python3
+import test
 import instrument
 import json
 
-class Frequency_Response_Test:
+class Frequency_Response_Test (test.Test):
 
     def __init__(self, bench):
-        self.id="frequency_response_test"
-        self.bench=bench
+        super().id="frequency_response_test"
+        super().bench=bench
 
         with open(self.id+'.json') as f:
             d = json.load(f)
             print(d)
 
-    def run(self):
-        self.test_initialization()
-        self.test_loop()
-        self.test_termination()
-
-    def test_initialization(self):
+    def initialization(self):
         self.power_supply_init()
         self.function_generator_init()
         self.oscilloscope_init()
@@ -64,7 +60,7 @@ class Frequency_Response_Test:
         
         self.bench.oscilloscope.measure_source(instrument.oscilloscope.Channel.ch1)
 
-    def test_loop(self):
+    def loop(self):
 
         for frequency in self.frequency_array:
 
@@ -77,7 +73,7 @@ class Frequency_Response_Test:
             self.bench.oscilloscope.measure_voltage_rms()
             self.bench.oscilloscope.stop()
 
-    def test_termination(self):
+    def termination(self):
         return
   
         

@@ -3,7 +3,7 @@
 import serial
 import io
 import logging
-logging.basicConfig(filename='./test_instruments/log/example.log',
+logging.basicConfig(filename='./log/example.log',
                     filemode='w',# 'w' for write (overwrite), 'a' for append
                     level=logging.DEBUG,
                     format='%(asctime)s %(message)s', 

@@ -1,26 +1,14 @@
 #!/usr/bin/env python3
+import test
 import instrument
-import json
 
-class Instrument_Commands_Test:
+class Instrument_Commands_Test (test.Test):
 
     def __init__(self, bench):
         self.id="instrument_commands_test"
-        self.bench=bench        
+        self.bench=bench
 
-        with open(self.id+'.json') as f:
-            d = json.load(f)
-            print(d)
-
-    def run(self):
-        self.test_initialization()
-        self.test_loop()
-        self.test_termination()
-
-    def test_initialization(self):
-        return
-
-    def test_loop(self):
+    def loop(self):
         self.bench.power_supply.get_device_id()
         self.bench.power_supply.measure_voltage()
         self.bench.power_supply.measure_current()
@@ -111,5 +99,3 @@ class Instrument_Commands_Test:
         self.bench.oscilloscope.measure_voltage_peak_to_peak()
         self.bench.oscilloscope.measure_voltage_rms()
 
-    def test_termination(self):
-        return
