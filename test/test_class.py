@@ -1,10 +1,12 @@
 import json
+from types import SimpleNamespace
 
 class Test:
 
-    def __init__(self, test_id, bench):
-        self.id=test_id
+    def __init__(self, bench):
         self.bench=bench
+        with open(self.id + '.json') as init_file:
+            self = json.loads(init_file,object_hook=lambda d: SimpleNamespace(**d))
 
     def run(self):
         self.initialization()
@@ -12,9 +14,6 @@ class Test:
         self.termination()
 
     def initialization(self):
-        with open(self.id + '.json') as f:
-            d = json.load(f)
-            print(d)
         return
 
     def loop(self):
