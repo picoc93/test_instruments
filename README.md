@@ -1,3 +1,5 @@
 - le variabili le lasciamo fuori dal codice nel json
-- fare una classe test generica da cui i singoli test ereditano
-- lavorare su bench (add instrument, add connection)
+- lavorare su bench (add instrument, add connection) ->> mettere le environmental conditions
+- gestire attenuazioni dei cavi (prevedere bench multipli)-> anche qui con la stessa strategia di pescare json
+- test_manager-> a partire dai nomi dei test dovrebbe generare gli oggetti
+- apply test factory design pattern to build test and bench
