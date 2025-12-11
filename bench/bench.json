@@ -1,0 +1,28 @@
+{	"psu": {
+		"id": "owon_spm3051",
+		"communication": {
+			"protocol":"serial",
+			"address": "COM:22",
+			"baud_rate":"115200"
+		}
+	},
+	
+	"awg": {
+		"id": "fy3224s",
+		"communication": {
+			"protocol":"serial",
+			"address": "COM:21",
+			"baud_rate":"9600"
+		}
+	},
+	
+	"oscilloscope": {
+		"id": "gw_instek_gds_806s",
+		"communication": {
+			"protocol":"serial",
+			"address": "COM:11",
+			"baud_rate":"9600"
+		}
+	},
+	
+}
