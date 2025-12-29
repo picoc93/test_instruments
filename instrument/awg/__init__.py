@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 __all__ = [
-    'fy3224s'
+    'awg_factory'
 ]
 
-from .fy3224s import *
+from .awg_factory import *

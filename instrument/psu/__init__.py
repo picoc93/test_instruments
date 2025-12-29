@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 __all__ = [
-    'owon_spm3051'
+    'psu_factory'
 ]
 
-from .owon_spm3051 import *
+from .psu_factory import *

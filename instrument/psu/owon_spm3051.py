@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import instrument
 
 ###############################################################################
@@ -13,7 +12,7 @@ class Owon (instrument.Instrument):
   def writeSilentCmd(self, command):
     super().writeSilentCmd(command,"\r\n")
   
-  def connect(self,baud_rate):
+  def connect(self,port, baud_rate):
     super().connect(baud_rate)
     id=self.get_device_id()
     super().set_id(id)

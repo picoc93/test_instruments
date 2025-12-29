@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+from enum import IntEnum, Enum
+import instrument
+
+###############################################################################
+class Waveform(IntEnum):
+    sine = 0
+    square = 1
+    pulse = 2
+    triangular=3
+    sawtooth=4
+    fall_sawtooth_wave=5
+    dc=6
+    pre1=7
+    pre2=8
+    pre3=9
+    pre4=10
+    pre5=11
+    pre6=12
+    pre7=13
+    pre8=14
+    pre9=15
+    pre10=16
+    arb1 = 17
+    arb2 = 18
+    arb3 = 19
+    arb4 = 20
+
+class Time_Unit(str,Enum):
+    ns="ns"
+    us="us"
+    ms="ms"
+
+class Sweep_Control(Enum):
+    stop=0
+    start=1
+
+class Scan_Mode(Enum):
+    linear=0
+    log=1
+
+###############################################################################
+class FeelTech (instrument.Instrument):
+
+    def __init__(self, port,cmd_timeout=0.5):
+        super().__init__(port,cmd_timeout)
+
+    def writeCmd(self, command):
+        return super().writeCmd(command,"\r\n","")
+
+    def writeSilentCmd(self, command):
+        super().writeSilentCmd(command,"\r\n")
+
+    def connect(self,baud_rate):
+        super().connect(baud_rate)
+        id=self.get_device_id()
+        super().set_id(id)
+
+  ###########################################################################
+  
+    def get_device_id(self):
+        return self.writeCmd('a')
+
+    def set_waveform(self,waveform):
+        return self.writeSilentCmd(f'bw{waveform:1}') 
+
+    def set_frequency(self,freqInHz):
+        freq=int(freqInHz*100)
+        return self.writeSilentCmd(f'bf{freq:09d}')
+
+    def set_amplitude(self,ampl):
+        return self.writeSilentCmd(f'ba{ampl:2.1f}')
+
+    def set_DC_offset(self,offset):
+        return self.writeSilentCmd(f'bo{offset:3.1f}')
+
+    def set_duty_cycle(self,duty_cycle):
+        duty=duty_cycle*10
+        return self.writeSilentCmd(f'bd{duty:3}')
+
+    def set_pulse_width(self,pulse_width,time_unit):
+        pw=int(pulse_width)*1000
+        return self.writeSilentCmd(f'bu{pw:010d}{time_unit}')
+
+    def set_sweep_time(self,sweep_time):
+        return self.writeSilentCmd(f'bt{sweep_time:>2}')
+
+    def set_sweep_start_frequency(self,freqInHz):
+        freq=int(freqInHz*100)
+        return self.writeSilentCmd(f'bb{freq:09d}')
+
+    def set_sweep_stop_frequency(self,freqInHz):
+        freq=int(freqInHz*100)
+        return self.writeSilentCmd(f'be{freq:09d}')
+        
+        #Set the sweep scan mode
+    def set_scan_mode(self,sweep_mode):
+        return self.writeSilentCmd(f'bm{sweep_mode:1}')
+
+    def set_sweep_control(self,sweep_control):
+        return self.writeSilentCmd(f'br{sweep_control:1}')
+        
+    def clear_internal_counter(self):
+        return self.writeSilentCmd(f'bc')
+
+    # store parameters (frequency, duty cycle, waveform) to a storage Position (0-9)
+    def store_current_parameters(self,pos):
+        return self.writeSilentCmd(f'bs{pos:1}')
+
+    # load parameters (frequency, duty cycle, waveform) to a storage Position (0-9)
+    def load_current_parameters(self,pos):
+        return self.writeSilentCmd(f'bl{pos:1}')
+
+    # read current frequency value
+    def get_frequency(self):
+        return self.writeCmd('cf')
+
+    # read current external frequency measurement
+    def get_external_frequency(self):
+        return self.writeCmd('ce')
+
+    # read current external count
+    def get_external_count(self):
+        return self.writeCmd('cc')
+
+    # read currently set duty cycle
+    def get_duty_cycle(self):
+        return self.writeCmd('cd')
+
+    # read current sweep time value
+    def get_sweep_time_values(self):
+        return self.writeCmd('ct')
+
+    def set_deputy_waveform(self,waveform):
+        return self.writeSilentCmd(f'dw{waveform:1}')
+
+    def set_deputy_frequency(self,freqInHz):
+        freq=int(freqInHz*100)
+        return self.writeSilentCmd(f'df{freq:09d}')
+
+    def set_deputy_amplitude(self,ampl):
+        return self.writeSilentCmd(f'da{ampl:2.1f}')
+        
+    def set_deputy_DC_offset(self,offset):
+        return self.writeSilentCmd(f'do{offset:3.1f}')
+
+    def set_deputy_wave_phase(self,phase):
+        return self.writeSilentCmd(f'dp{phase:3}')
+
+    def set_deputy_duty_cycle(self,duty_cycle):
+        duty=duty_cycle*10
+        return self.writeSilentCmd(f'dd{duty:3}')

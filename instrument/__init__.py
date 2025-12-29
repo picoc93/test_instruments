@@ -8,5 +8,5 @@ __all__ = [
 
 from .instrument_class import *
 import instrument.psu
-import instrument.oscilloscope
+import instrument.scope
 import instrument.awg

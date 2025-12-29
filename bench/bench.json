@@ -1,28 +1,38 @@
-{	"psu": {
-		"id": "owon_spm3051",
-		"communication": {
-			"protocol":"serial",
-			"address": "COM:22",
-			"baud_rate":"115200"
-		}
-	},
-	
-	"awg": {
-		"id": "fy3224s",
-		"communication": {
-			"protocol":"serial",
-			"address": "COM:21",
-			"baud_rate":"9600"
-		}
-	},
-	
-	"oscilloscope": {
-		"id": "gw_instek_gds_806s",
-		"communication": {
-			"protocol":"serial",
-			"address": "COM:11",
-			"baud_rate":"9600"
-		}
-	},
-	
+{
+    "instruments": [
+      {
+        "type": "psu",
+        "brand": "owon",
+        "model": "spm3051",
+        "resource_id": "GPIB0::18::INSTR",
+        "settings": {
+          "baud_rate": 9600,
+          "data_bits": 8,
+          "parity": "none"
+        }
+      },
+      {
+        "type": "scope",
+        "brand": "gw_instek",
+        "model": "gds_806s",
+        "resource_id": "GPIB0::18::INSTR",
+        "settings": {
+          "baud_rate": 9600,
+          "data_bits": 8,
+          "parity": "none"
+        }
+      },
+
+      {
+        "type": "awg",
+        "brand": "feeltech",
+        "model": "fy3224s",
+        "resource_id": "GPIB0::18::INSTR",
+        "settings": {
+          "baud_rate": 9600,
+          "data_bits": 8,
+          "parity": "none"
+        }
+      }
+    ]
 }

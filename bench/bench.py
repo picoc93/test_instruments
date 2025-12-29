@@ -1,31 +1,27 @@
-#!/usr/bin/env python3
 import instrument
+import json
 
 class Bench:
+    def __init__(self, config_path):
+        self.config_path = config_path
+        self.active_bench = {}
 
-  def __init__(self,bench_id):
-    self.id=bench_id
-    self.power_supply = None
-    self.function_generator=None
-    self.oscilloscope=None
 
-  def connect_power_supply(self,port):
-    self.power_supply=instrument.psu.Owon(port)
-    self.power_supply.connect(115200)
+    def load_bench(self):
+        with open(self.config_path, 'r') as f:
+            data = json.load(f)
 
-  def connect_function_generator(self,port):
-    self.function_generator=instrument.awg.FeelTech(port)
-    self.function_generator.connect(9600)
+        for item in data['instruments']:
+            itype = item['type']
+            brand = item['brand']
+            res_id = item['resource_id']
 
-  def connect_oscilloscope(self,port):
-    self.oscilloscope=instrument.oscilloscope.GWInstek(port)
-    self.oscilloscope.connect(9600)
+            # Use the correct factory to build the instrument
+            factory = self.factories.get(itype)
+            if factory:
+                # We store it in a dict for easy access, e.g., self.active_bench['psu']
+                self.active_bench[itype] = factory.create_instrument(brand, res_id)
+                print(f"Initialized {brand} {itype} at {res_id}")
 
-  def disconnect_psu(self):
-    del self.power_supply
-
-  def disconnect_function_generator(self):
-    del self.function_generator
-
-  def disconnect_oscilloscope(self):
-    del self.oscilloscope
+    def get_instrument(self, itype) -> Instrument:
+        return self.active_bench.get(itype)

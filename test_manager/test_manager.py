@@ -15,7 +15,6 @@ class Test_Manager: #run tests, collect measures, insert measures in DB
         self.test_manager_termination()
 
     def test_manager_initialization(self):
-        print('ciao')
         self.start_time=time.time()
         return
 
@@ -24,5 +23,3 @@ class Test_Manager: #run tests, collect measures, insert measures in DB
 
     def test_manager_termination(self):
         self.stop_time=time.time()
-
-
