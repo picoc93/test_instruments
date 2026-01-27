@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 __all__ = [
-    'instrument_class',
-    'psu',
-    'oscilloscope',
-    'awg'
+    'power_supply',
+    'waveform_generator',
+    'oscilloscope'
 ]
 
-from .instrument_class import *
-import instrument.psu
-import instrument.scope
-import instrument.awg
+from instrument import *
+from instrument.power_supply import *
+from instrument.waveform_generator import *
+from instrument.oscilloscope import *
+
+
