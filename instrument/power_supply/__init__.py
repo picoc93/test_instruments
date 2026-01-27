@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
-__all__ = [
-    'psu_base'
-]
+from .psu_base import PSU
+from .owon_spm3051 import OwonSPM3051
 
-from .psu_base import *
+__all__ = [
+    'PSU',
+    'OwonSPM3051'
+]
