@@ -1,38 +1,24 @@
 {
-    "instruments": [
-      {
-        "type": "psu",
-        "brand": "owon",
-        "model": "spm3051",
-        "resource_id": "GPIB0::18::INSTR",
-        "settings": {
-          "baud_rate": 9600,
-          "data_bits": 8,
-          "parity": "none"
-        }
-      },
-      {
-        "type": "scope",
-        "brand": "gw_instek",
-        "model": "gds_806s",
-        "resource_id": "GPIB0::18::INSTR",
-        "settings": {
-          "baud_rate": 9600,
-          "data_bits": 8,
-          "parity": "none"
-        }
-      },
-
-      {
-        "type": "awg",
-        "brand": "feeltech",
-        "model": "fy3224s",
-        "resource_id": "GPIB0::18::INSTR",
-        "settings": {
-          "baud_rate": 9600,
-          "data_bits": 8,
-          "parity": "none"
-        }
+  "instruments": [
+    {
+      "id": "psu_1",
+      "resource_id": "GPIB0::18::INSTR",
+      "timeout": 5.0,
+      "connection_kwargs": {}
+    },
+    {
+      "id": "oscilloscope_1",
+      "resource_id": "GPIB0::19::INSTR",
+      "timeout": 5.0,
+      "connection_kwargs": {}
+    },
+    {
+      "id": "awg_1",
+      "resource_id": "ASRL1::INSTR",
+      "timeout": 2.0,
+      "connection_kwargs": {
+        "baud_rate": 9600
       }
-    ]
+    }
+  ]
 }

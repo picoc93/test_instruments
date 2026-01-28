@@ -1,496 +1,258 @@
 #!/usr/bin/env python3
 """
-Bench class for managing multiple electronic test instruments.
-Works with the existing Instrument base class and connection handlers.
+Simplified Bench class for managing multiple instruments from JSON configuration.
 """
 import json
-from typing import Dict, List, Optional, Any
+from typing import Dict, Optional
 from instrument_base import Instrument
-
-
-class GenericInstrument(Instrument):
-    """
-    Generic instrument implementation for use with Bench.
-    Can be subclassed for specific instrument types.
-    """
-    
-    def __init__(self, resource_id: str, timeout: float = 1.0, **kwargs):
-        """
-        Initialize generic instrument.
-        
-        Args:
-            resource_id: Connection string
-            timeout: Timeout in seconds
-            **kwargs: Additional metadata (type, brand, model, etc.)
-        """
-        super().__init__(resource_id, timeout)
-        self.metadata = kwargs
-        self.instrument_id = kwargs.get('id', resource_id)
-        self.instrument_type = kwargs.get('type', 'generic')
-        self.brand = kwargs.get('brand', 'unknown')
-        self.model = kwargs.get('model', 'unknown')
-    
-    def get_device_id(self) -> str:
-        """Get device ID using standard *IDN? command."""
-        try:
-            return self.query("*IDN?")
-        except:
-            return "ID not available"
-    
-    def __str__(self):
-        """String representation."""
-        status = "connected" if self.is_connected() else "disconnected"
-        return f"{self.instrument_id}: {self.brand} {self.model} ({self.instrument_type}) - {status}"
-    
-    def __repr__(self):
-        """Detailed representation."""
-        return (f"GenericInstrument(id='{self.instrument_id}', type='{self.instrument_type}', "
-                f"brand='{self.brand}', model='{self.model}', resource='{self.resource_id}')")
 
 
 class Bench:
     """
-    Manages a collection of electronic test instruments.
+    Simple bench manager - loads instruments from JSON and provides access.
     
-    Features:
-    - Load/save instrument configurations from/to JSON
-    - Connect/disconnect all or specific instruments
-    - Query instruments by ID or type
-    - Add/remove instruments dynamically
-    - Status monitoring and reporting
+    Usage:
+        bench = Bench('config.json')
+        bench.load()
+        bench.connect_all()
+        psu = bench['psu_1']
+        psu.write('VOLT 5.0')
+        bench.disconnect_all()
     """
     
     def __init__(self, config_path: str):
-        """
-        Initialize the bench with a configuration file.
-        
-        Args:
-            config_path: Path to the JSON configuration file
-        """
         self.config_path = config_path
         self.instruments: Dict[str, Instrument] = {}
-        self.config_data: Optional[Dict] = None
     
-    def load_config(self) -> bool:
-        """
-        Load the instrument configuration from JSON file.
+    def load(self):
+        """Load instruments from JSON configuration."""
+        with open(self.config_path, 'r') as f:
+            data = json.load(f)
         
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            with open(self.config_path, 'r') as f:
-                self.config_data = json.load(f)
+        for item in data['instruments']:
+            # Get timeout in seconds (convert from ms if needed)
+            timeout = item.get('timeout', 1.0)
+            if timeout > 100:  # Assume milliseconds if > 100
+                timeout = timeout / 1000.0
             
-            # Create instrument objects
-            for instr_config in self.config_data.get('instruments', []):
-                instrument_id = instr_config.get('id')
-                if not instrument_id:
-                    print(f"Warning: Instrument configuration missing 'id' field: {instr_config}")
-                    continue
-                
-                # Extract connection parameters
-                resource_id = instr_config.get('address') or instr_config.get('resource_id')
-                if not resource_id:
-                    print(f"Warning: Instrument {instrument_id} missing address/resource_id")
-                    continue
-                
-                timeout = instr_config.get('settings', {}).get('timeout', 1000) / 1000.0  # Convert ms to seconds
-                
-                # Create instrument
-                self.instruments[instrument_id] = GenericInstrument(
-                    resource_id=resource_id,
-                    timeout=timeout,
-                    id=instrument_id,
-                    type=instr_config.get('type', 'generic'),
-                    brand=instr_config.get('brand', 'unknown'),
-                    model=instr_config.get('model', 'unknown'),
-                    settings=instr_config.get('settings', {})
-                )
+            # Create instrument using your custom class or a generic one
+            instrument_class = item.get('class', Instrument)
+            if isinstance(instrument_class, str):
+                # If class is specified as string, you would import it
+                # For now, just use base Instrument
+                instrument_class = Instrument
             
-            print(f"Loaded {len(self.instruments)} instrument(s) from configuration")
-            return True
-            
-        except FileNotFoundError:
-            print(f"Error: Configuration file not found: {self.config_path}")
-            return False
-        except json.JSONDecodeError as e:
-            print(f"Error: Invalid JSON in configuration file: {e}")
-            return False
-        except Exception as e:
-            print(f"Error loading configuration: {e}")
-            return False
-    
-    def connect_all(self) -> Dict[str, bool]:
-        """
-        Connect to all instruments in the configuration.
-        
-        Returns:
-            Dictionary with instrument IDs as keys and connection status as values
-        """
-        results = {}
-        for inst_id, instrument in self.instruments.items():
-            try:
-                # Get connection settings from metadata
-                settings = instrument.metadata.get('settings', {})
-                
-                # Extract connection parameters based on type
-                connect_kwargs = {}
-                if 'baud_rate' in settings:
-                    connect_kwargs['baud_rate'] = settings['baud_rate']
-                if 'data_bits' in settings:
-                    connect_kwargs['bytesize'] = settings['data_bits']
-                if 'parity' in settings:
-                    parity_map = {
-                        'none': 'N',
-                        'even': 'E',
-                        'odd': 'O',
-                        'mark': 'M',
-                        'space': 'S'
-                    }
-                    connect_kwargs['parity'] = parity_map.get(settings['parity'].lower(), 'N')
-                if 'stop_bits' in settings:
-                    connect_kwargs['stopbits'] = settings['stop_bits']
-                
-                instrument.connect(**connect_kwargs)
-                results[inst_id] = True
-                print(f"✓ Connected to {inst_id}")
-                
-            except Exception as e:
-                results[inst_id] = False
-                print(f"✗ Failed to connect to {inst_id}: {e}")
-        
-        return results
-    
-    def connect_instrument(self, instrument_id: str, **kwargs) -> bool:
-        """
-        Connect to a specific instrument by ID.
-        
-        Args:
-            instrument_id: Instrument ID from configuration
-            **kwargs: Additional connection parameters to override defaults
-            
-        Returns:
-            True if successful, False otherwise
-        """
-        instrument = self.instruments.get(instrument_id)
-        if not instrument:
-            print(f"Error: Instrument '{instrument_id}' not found in configuration")
-            return False
-        
-        try:
-            # Merge default settings with provided kwargs
-            settings = instrument.metadata.get('settings', {})
-            connect_kwargs = {}
-            
-            if 'baud_rate' in settings:
-                connect_kwargs['baud_rate'] = settings['baud_rate']
-            if 'data_bits' in settings:
-                connect_kwargs['bytesize'] = settings['data_bits']
-            if 'parity' in settings:
-                parity_map = {'none': 'N', 'even': 'E', 'odd': 'O', 'mark': 'M', 'space': 'S'}
-                connect_kwargs['parity'] = parity_map.get(settings['parity'].lower(), 'N')
-            if 'stop_bits' in settings:
-                connect_kwargs['stopbits'] = settings['stop_bits']
-            
-            # Override with user-provided kwargs
-            connect_kwargs.update(kwargs)
-            
-            instrument.connect(**connect_kwargs)
-            print(f"✓ Connected to {instrument_id}")
-            return True
-            
-        except Exception as e:
-            print(f"✗ Failed to connect to {instrument_id}: {e}")
-            return False
-    
-    def disconnect_all(self) -> Dict[str, bool]:
-        """
-        Disconnect from all instruments.
-        
-        Returns:
-            Dictionary with instrument IDs as keys and disconnection status as values
-        """
-        results = {}
-        for inst_id, instrument in self.instruments.items():
-            try:
-                instrument.disconnect()
-                results[inst_id] = True
-            except Exception as e:
-                print(f"Error disconnecting {inst_id}: {e}")
-                results[inst_id] = False
-        
-        return results
-    
-    def disconnect_instrument(self, instrument_id: str) -> bool:
-        """
-        Disconnect from a specific instrument.
-        
-        Args:
-            instrument_id: Instrument ID
-            
-        Returns:
-            True if successful, False otherwise
-        """
-        instrument = self.instruments.get(instrument_id)
-        if not instrument:
-            print(f"Error: Instrument '{instrument_id}' not found")
-            return False
-        
-        try:
-            instrument.disconnect()
-            return True
-        except Exception as e:
-            print(f"Error disconnecting {instrument_id}: {e}")
-            return False
-    
-    def get_instrument(self, instrument_id: str) -> Optional[Instrument]:
-        """
-        Get an instrument object by ID.
-        
-        Args:
-            instrument_id: Instrument ID
-            
-        Returns:
-            Instrument object or None if not found
-        """
-        return self.instruments.get(instrument_id)
-    
-    def get_instruments_by_type(self, instrument_type: str) -> List[Instrument]:
-        """
-        Get all instruments of a specific type.
-        
-        Args:
-            instrument_type: Type of instrument (psu, scope, awg, dmm, etc.)
-            
-        Returns:
-            List of Instrument objects matching the type
-        """
-        return [
-            inst for inst in self.instruments.values()
-            if inst.instrument_type == instrument_type
-        ]
-    
-    def get_all_instruments(self) -> Dict[str, Instrument]:
-        """
-        Get all instrument objects.
-        
-        Returns:
-            Dictionary of all instruments (ID: Instrument)
-        """
-        return self.instruments
-    
-    def test_all_connections(self) -> Dict[str, Optional[str]]:
-        """
-        Test all instrument connections by querying device ID.
-        
-        Returns:
-            Dictionary with instrument IDs as keys and device ID responses as values
-        """
-        results = {}
-        for inst_id, instrument in self.instruments.items():
-            if instrument.is_connected():
-                try:
-                    device_id = instrument.get_device_id()
-                    results[inst_id] = device_id
-                    print(f"{inst_id}: {device_id}")
-                except Exception as e:
-                    results[inst_id] = None
-                    print(f"{inst_id}: Error - {e}")
-            else:
-                results[inst_id] = None
-                print(f"{inst_id}: Not connected")
-        
-        return results
-    
-    def add_instrument(self, instrument_config: Dict[str, Any]) -> bool:
-        """
-        Add a new instrument to the bench.
-        
-        Args:
-            instrument_config: Instrument configuration dictionary
-            
-        Returns:
-            True if successful, False otherwise
-        """
-        instrument_id = instrument_config.get('id')
-        if not instrument_id:
-            print("Error: Instrument configuration must have an 'id' field")
-            return False
-        
-        resource_id = instrument_config.get('address') or instrument_config.get('resource_id')
-        if not resource_id:
-            print(f"Error: Instrument {instrument_id} missing address/resource_id")
-            return False
-        
-        if instrument_id in self.instruments:
-            print(f"Warning: Instrument '{instrument_id}' already exists. Overwriting...")
-        
-        try:
-            timeout = instrument_config.get('settings', {}).get('timeout', 1000) / 1000.0
-            
-            self.instruments[instrument_id] = GenericInstrument(
-                resource_id=resource_id,
-                timeout=timeout,
-                id=instrument_id,
-                type=instrument_config.get('type', 'generic'),
-                brand=instrument_config.get('brand', 'unknown'),
-                model=instrument_config.get('model', 'unknown'),
-                settings=instrument_config.get('settings', {})
+            # Store metadata for later use
+            instrument = instrument_class(
+                resource_id=item['resource_id'],
+                timeout=timeout
             )
+            instrument._connect_kwargs = item.get('connection_kwargs', {})
+            instrument._config = item
             
-            print(f"Added instrument: {instrument_id}")
-            return True
-            
-        except Exception as e:
-            print(f"Error adding instrument: {e}")
-            return False
+            self.instruments[item['id']] = instrument
     
-    def remove_instrument(self, instrument_id: str) -> bool:
+    def save(self, output_path: Optional[str] = None):
+        """Save current configuration to JSON."""
+        if output_path is None:
+            output_path = self.config_path
+        
+        config = {
+            'instruments': [
+                inst._config for inst in self.instruments.values()
+            ]
+        }
+        
+        with open(output_path, 'w') as f:
+            json.dump(config, f, indent=2)
+    
+    def add_instrument(self, instrument_id: str, resource_id: str, 
+                      timeout: float = 1.0, connection_kwargs: dict = None):
         """
-        Remove an instrument from the bench.
+        Add a new instrument.
         
         Args:
-            instrument_id: Instrument ID to remove
-            
-        Returns:
-            True if successful, False otherwise
+            instrument_id: Unique ID for the instrument
+            resource_id: Connection string (GPIB, ASRL, TCPIP, USB)
+            timeout: Timeout in seconds
+            connection_kwargs: Parameters for connect() method
         """
-        instrument = self.instruments.get(instrument_id)
-        if not instrument:
-            print(f"Error: Instrument '{instrument_id}' not found")
-            return False
+        if connection_kwargs is None:
+            connection_kwargs = {}
         
-        # Disconnect if connected
+        instrument = Instrument(resource_id, timeout)
+        instrument._connect_kwargs = connection_kwargs
+        instrument._config = {
+            'id': instrument_id,
+            'resource_id': resource_id,
+            'timeout': timeout,
+            'connection_kwargs': connection_kwargs
+        }
+        
+        self.instruments[instrument_id] = instrument
+        print(f"Added instrument: {instrument_id}")
+    
+    def remove_instrument(self, instrument_id: str):
+        """
+        Remove an instrument.
+        
+        Args:
+            instrument_id: ID of instrument to remove
+        """
+        if instrument_id not in self.instruments:
+            print(f"Instrument {instrument_id} not found")
+            return
+        
+        instrument = self.instruments[instrument_id]
         if instrument.is_connected():
             instrument.disconnect()
         
         del self.instruments[instrument_id]
         print(f"Removed instrument: {instrument_id}")
-        return True
     
-    def save_config(self, output_path: Optional[str] = None) -> bool:
+    def connect_instrument(self, instrument_id: str):
         """
-        Save the current configuration to a JSON file.
+        Connect to a specific instrument.
         
         Args:
-            output_path: Output file path. If None, overwrites the original config.
-            
-        Returns:
-            True if successful, False otherwise
+            instrument_id: ID of instrument to connect
         """
-        if output_path is None:
-            output_path = self.config_path
+        if instrument_id not in self.instruments:
+            print(f"Instrument {instrument_id} not found")
+            return False
         
+        instrument = self.instruments[instrument_id]
         try:
-            # Build configuration from current instruments
-            config = {
-                'instruments': [
-                    {
-                        'id': inst.instrument_id,
-                        'type': inst.instrument_type,
-                        'brand': inst.brand,
-                        'model': inst.model,
-                        'address': inst.resource_id,
-                        'settings': inst.metadata.get('settings', {})
-                    }
-                    for inst in self.instruments.values()
-                ]
-            }
-            
-            with open(output_path, 'w') as f:
-                json.dump(config, f, indent=2)
-            
-            print(f"Configuration saved to {output_path}")
+            instrument.connect(**instrument._connect_kwargs)
+            print(f"✓ Connected to {instrument_id}")
             return True
-            
         except Exception as e:
-            print(f"Error saving configuration: {e}")
+            print(f"✗ Failed to connect to {instrument_id}: {e}")
             return False
     
-    def get_status(self) -> Dict[str, Any]:
+    def disconnect_instrument(self, instrument_id: str):
+        """
+        Disconnect from a specific instrument.
+        
+        Args:
+            instrument_id: ID of instrument to disconnect
+        """
+        if instrument_id not in self.instruments:
+            print(f"Instrument {instrument_id} not found")
+            return False
+        
+        instrument = self.instruments[instrument_id]
+        try:
+            instrument.disconnect()
+            print(f"Disconnected from {instrument_id}")
+            return True
+        except Exception as e:
+            print(f"Error disconnecting {instrument_id}: {e}")
+            return False
+    
+    def connect_all(self):
+        """Connect to all instruments."""
+        results = {}
+        for inst_id in self.instruments:
+            results[inst_id] = self.connect_instrument(inst_id)
+        return results
+    
+    def disconnect_all(self):
+        """Disconnect from all instruments."""
+        results = {}
+        for inst_id in self.instruments:
+            results[inst_id] = self.disconnect_instrument(inst_id)
+        return results
+    
+    def get_status(self):
         """
         Get status of all instruments.
         
         Returns:
-            Dictionary with instrument status information
+            Dictionary with status information
         """
         status = {
-            'total_instruments': len(self.instruments),
-            'connected': sum(1 for inst in self.instruments.values() if inst.is_connected()),
-            'disconnected': sum(1 for inst in self.instruments.values() if not inst.is_connected()),
+            'total': len(self.instruments),
+            'connected': sum(1 for i in self.instruments.values() if i.is_connected()),
+            'disconnected': sum(1 for i in self.instruments.values() if not i.is_connected()),
             'instruments': {}
         }
         
         for inst_id, instrument in self.instruments.items():
             status['instruments'][inst_id] = {
-                'type': instrument.instrument_type,
-                'brand': instrument.brand,
-                'model': instrument.model,
-                'connected': instrument.is_connected(),
-                'address': instrument.resource_id
+                'resource_id': instrument.resource_id,
+                'connected': instrument.is_connected()
             }
         
         return status
     
     def print_status(self):
-        """Print a formatted status report of all instruments."""
+        """Print formatted status of all instruments."""
         status = self.get_status()
         
-        print("\n" + "="*70)
+        print("\n" + "="*60)
         print("BENCH STATUS")
-        print("="*70)
-        print(f"Total Instruments: {status['total_instruments']}")
-        print(f"Connected: {status['connected']}")
-        print(f"Disconnected: {status['disconnected']}")
-        print("-"*70)
+        print("="*60)
+        print(f"Total: {status['total']} | Connected: {status['connected']} | Disconnected: {status['disconnected']}")
+        print("-"*60)
         
-        for inst_id, inst_info in status['instruments'].items():
-            status_str = "✓ CONNECTED" if inst_info['connected'] else "✗ DISCONNECTED"
-            print(f"{inst_id:15} | {inst_info['type']:8} | {inst_info['brand']:15} "
-                  f"{inst_info['model']:15} | {status_str}")
+        for inst_id, info in status['instruments'].items():
+            state = "✓ CONNECTED" if info['connected'] else "✗ DISCONNECTED"
+            print(f"{inst_id:15} | {info['resource_id']:35} | {state}")
         
-        print("="*70 + "\n")
+        print("="*60 + "\n")
+    
+    def test_all_connections(self):
+        """
+        Test all connections by querying device ID.
+        
+        Returns:
+            Dictionary with device IDs
+        """
+        results = {}
+        print("\n" + "="*60)
+        print("TESTING CONNECTIONS")
+        print("="*60)
+        
+        for inst_id, instrument in self.instruments.items():
+            if not instrument.is_connected():
+                results[inst_id] = None
+                print(f"{inst_id}: Not connected")
+                continue
+            
+            try:
+                device_id = instrument.get_device_id()
+                results[inst_id] = device_id
+                print(f"{inst_id}: {device_id}")
+            except Exception as e:
+                results[inst_id] = None
+                print(f"{inst_id}: Error - {e}")
+        
+        print("="*60 + "\n")
+        return results
+    
+    def __getitem__(self, instrument_id: str) -> Instrument:
+        """Get instrument by ID using bench['id'] syntax."""
+        return self.instruments[instrument_id]
+    
+    def __contains__(self, instrument_id: str) -> bool:
+        """Check if instrument exists using 'id' in bench syntax."""
+        return instrument_id in self.instruments
+    
+    def __iter__(self):
+        """Iterate over instrument IDs."""
+        return iter(self.instruments)
+    
+    def __len__(self):
+        """Number of instruments."""
+        return len(self.instruments)
     
     def __enter__(self):
         """Context manager entry."""
-        self.load_config()
+        self.load()
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit - disconnect all instruments."""
+        """Context manager exit - disconnect all."""
         self.disconnect_all()
         return False
-    
-    def __str__(self):
-        """String representation."""
-        return f"Bench with {len(self.instruments)} instrument(s)"
-    
-    def __repr__(self):
-        """Detailed representation."""
-        return f"Bench(config_path='{self.config_path}', instruments={len(self.instruments)})"
-
-
-# Convenience function to create instrument-specific subclasses
-def create_instrument_class(class_name: str, device_id_command: str = "*IDN?"):
-    """
-    Factory to create instrument-specific subclasses.
-    
-    Args:
-        class_name: Name of the instrument class
-        device_id_command: Command to get device ID
-        
-    Returns:
-        New instrument class
-    """
-    def get_device_id(self) -> str:
-        try:
-            return self.query(device_id_command)
-        except:
-            return "ID not available"
-    
-    return type(
-        class_name,
-        (GenericInstrument,),
-        {'get_device_id': get_device_id}
-    )
